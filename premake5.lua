@@ -34,6 +34,10 @@ project "StegosaurusEngine"
         "%{AdditionalIncludeDirs.lodepng}"
 	}
 
+    links {
+        "lodepng"
+    }
+
     defines {
         "STEG_BUILD_DLL"
     }
@@ -72,7 +76,7 @@ project "Stegosaurus"
 	}
 
 	links {
-		"StegosaurusEngine"
+        "StegosaurusEngine"
 	}
 
 	filter "configurations:Debug"
@@ -81,4 +85,29 @@ project "Stegosaurus"
 
 	filter "configurations:Release"
 		defines "STEGOSAURUS_RELEASE"
+		optimize "On"
+
+project "lodepng"
+    location "StegosaurusEngine/vendor/lodepng"
+    staticruntime "On"
+    kind "StaticLib"
+    language "C++"
+    
+	targetdir ("bin/" .. OutDir .. "/%{prj.name}")
+	objdir ("bin-obj/" .. OutDir .. "/%{prj.name}")
+
+	files {
+		"StegosaurusEngine/vendor/%{prj.name}/lodepng.h",
+		"StegosaurusEngine/vendor/%{prj.name}/lodepng.cpp"
+    }
+    
+	includedirs {
+		"StegosaurusEngine/vendor/%{prj.name}/lodepng.h",
+		"StegosaurusEngine/vendor/%{prj.name}/lodepng.cpp"
+	}
+
+	filter "configurations:Debug"
+		symbols "On"
+
+	filter "configurations:Release"
 		optimize "On"
