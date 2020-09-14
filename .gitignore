@@ -1,0 +1,10 @@
+/*
+!.gitignore
+!/Stegosaurus
+!/StegosaurusEngine
+!premake5.lua
+*.vcxproj
+*.filters
+*.user
+vendor/
+!/scripts
