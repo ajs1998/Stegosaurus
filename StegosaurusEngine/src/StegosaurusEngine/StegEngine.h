@@ -33,6 +33,10 @@ namespace Steg {
 
     private:
 
+        static void EncodePixels(Image& image, const std::vector<byte>& data, const EncoderSettings& settings);
+
+        static void EncodeBytes(Image& image, const std::vector<byte>& data, const EncoderSettings& settings);
+
         static uint16_t GetPixelMask(uint32_t imageBitDepth, uint32_t dataBitDepth);
 
         static byte GetPartMask(uint32_t imageBitDepth, uint32_t dataBitDepth);

@@ -34,10 +34,6 @@ project "StegosaurusEngine"
         "%{AdditionalIncludeDirs.lodepng}"
 	}
 
-	links {
-        "lodepng"
-	}
-    
     defines {
         "STEG_BUILD_DLL"
     }

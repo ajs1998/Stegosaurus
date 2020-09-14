@@ -8,7 +8,7 @@ namespace Steg {
 
     Image::Image(uint32_t width, uint32_t height, const PixelMode& mode)
         : Width(width), Height(height), PixelCount(width* height), Mode(mode) {
-        Data.resize(PixelCount * GetColorSize(mode), 0);
+        Data.resize(PixelCount * GetPixelWidth(mode), 0);
     }
 
     Image::Image(const std::string& imagePath) {
@@ -137,7 +137,7 @@ namespace Steg {
         uint32_t bitDepth = GetBitDepth(Mode);
         uint32_t channels = GetChannelCount(Mode);
 
-        uint32_t pixelIndex = (y * Width + x) * GetColorSize(Mode);
+        uint32_t pixelIndex = (y * Width + x) * GetPixelWidth(Mode);
 
         uint64_t color = 0;
         if (bitDepth == 8) {
@@ -161,7 +161,7 @@ namespace Steg {
 
     }
 
-    uint64_t Image::GetByte(uint32_t index) const {
+    byte Image::GetByte(uint32_t index) const {
         return Data[index];
     }
     
@@ -170,7 +170,7 @@ namespace Steg {
         uint32_t bitDepth = GetBitDepth(Mode);
         uint32_t channels = GetChannelCount(Mode);
 
-        uint32_t pixelIndex = (y * Width + x) * GetColorSize(Mode);
+        uint32_t pixelIndex = (y * Width + x) * GetPixelWidth(Mode);
 
         if (bitDepth == 8) {
             for (uint32_t i = 0; i < channels; i++) {
@@ -242,6 +242,7 @@ namespace Steg {
         }
         else {
             // TODO Throw a fit
+            return PixelMode::INVALID;
         }
     }
 
@@ -264,6 +265,7 @@ namespace Steg {
         }
         else {
             // TODO Throw a fit
+            return PixelMode::INVALID;
         }
     }
 

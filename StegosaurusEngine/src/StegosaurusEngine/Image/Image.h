@@ -27,7 +27,7 @@ namespace Steg {
 
         uint64_t GetColor(uint32_t x, uint32_t y) const;
 
-        uint64_t GetByte(uint32_t index) const;
+        byte GetByte(uint32_t index) const;
 
         void SetColor(uint32_t x, uint32_t y, uint64_t color);
 

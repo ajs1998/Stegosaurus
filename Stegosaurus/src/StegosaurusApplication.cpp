@@ -11,11 +11,11 @@
 StegosaurusApplication::StegosaurusApplication() {
     Steg::Image image("C:/Users/Alex/Desktop/In.png");
     std::vector<byte> data(5, 64);
-    Steg::StegEngine::Encode(image, data);
+    Steg::StegEngine::Encode(image, data, { 2, false, false });
 }
 
 StegosaurusApplication::~StegosaurusApplication() {
-
+    // Application Destructor
 }
 
 // Implemented from StegosaurusEngine/EntryPoint.h
