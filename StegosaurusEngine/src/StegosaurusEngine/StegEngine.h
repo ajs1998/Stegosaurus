@@ -21,6 +21,11 @@ namespace Steg {
         // FALSE: Hide data in random places across the image (preferred)
         bool SequentialOrder = false;
 
+        // TRUE: Hide data in alpha channel if available
+        // FALSE: Leave alpha channel alone (preferred)
+        // Note: Only applies to RGBA_X or GRAYA_X PixelModes
+        bool EncodeInAlpha = false;
+
     };
 
     class StegEngine {
@@ -29,7 +34,7 @@ namespace Steg {
 
         static void Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings);
 
-        //static std::vector<byte> Decode(const Image& image);
+        // static std::vector<byte> Decode(const Image& image);
 
     private:
 
@@ -40,6 +45,8 @@ namespace Steg {
         static uint16_t GetPixelMask(uint32_t imageBitDepth, uint32_t dataBitDepth);
 
         static byte GetPartMask(uint32_t imageBitDepth, uint32_t dataBitDepth);
+
+        static bool IsAlphaIndex(uint32_t index, )
 
     };
 

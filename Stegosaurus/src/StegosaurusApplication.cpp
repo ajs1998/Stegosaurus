@@ -10,8 +10,9 @@
 
 StegosaurusApplication::StegosaurusApplication() {
     Steg::Image image("C:/Users/Alex/Desktop/In.png");
-    std::vector<byte> data(5, 64);
-    Steg::StegEngine::Encode(image, data, { 2, false, false });
+    std::vector<byte> data(50, (byte)0);
+    Steg::StegEngine::Encode(image, data, { 2, true, false, false });
+    image.SaveImage("C:/Users/Alex/Desktop/Out.png");
 }
 
 StegosaurusApplication::~StegosaurusApplication() {
