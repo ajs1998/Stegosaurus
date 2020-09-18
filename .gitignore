@@ -6,5 +6,4 @@
 *.vcxproj
 *.filters
 *.user
-vendor/
 !/scripts
