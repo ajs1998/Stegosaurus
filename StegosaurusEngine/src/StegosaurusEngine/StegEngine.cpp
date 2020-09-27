@@ -10,173 +10,34 @@ namespace Steg {
     void StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
 
         // TODO Prepend data vector with header information
+        std::vector<byte> header();
 
-        if (settings.EncodeWholePixels) {
-            EncodePixels(image, data, settings);
-        }
-        else {
-            EncodeBytes(image, data, settings);
-        }
-
-    }
-
-    // Note: Pay very close attention to off-by-one errors. I may have made several
-    void StegEngine::EncodePixels(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
-
+        // Width of the image
         uint32_t width = image.GetWidth();
+        // Height of the image
         uint32_t height = image.GetHeight();
+        // Pixel width of the image
         uint32_t bytesPerPixel = image.GetPixelWidth();
+        // Number of pixels in the image
         uint32_t pixelCount = width * height;
+        // Skip over the alpha channel while encoding
         bool skipAlpha = !(image.HasAlpha() && settings.EncodeInAlpha);
 
-        // TODO Put this in its own function maybe
         // Check if data and its depth will fit in the image
         // Note: This check is not 100% accurate. The payload will be prepended with a header containing even more information
+        // TODO Make this 100% accurate
         if (8 / settings.DataDepth * data.size() > bytesPerPixel * pixelCount) {
             // Not enough available space in the image for the data and its depth
             // TODO Throw a fit
             return;
         }
 
-        const uint16_t pixelMask = GetPixelMask(image.GetBitDepth(), settings.DataDepth);
-        const byte partMask = GetPartMask(image.GetBitDepth(), settings.DataDepth);
-
-        // Encode data into sequential pixels
-        if (settings.SequentialOrder) {
-
-            /* Hide information in the image */
-
-            // Each index corresponds to one sequential pixel
-            // Get a byte of data and insert it into the image
-            // Note: Start placing data at the first byte of the first pixel (no seed is stored)
-            uint32_t byteIndex = 0;
-            for (uint32_t i = 0; i < data.size(); i++) {
-                byte datum = data[i];
-
-                // Split the byte into parts
-                uint32_t partCount = 8 / settings.DataDepth;
-
-                // Get each part and insert it into the image
-                for (uint32_t partIndex = 0; partIndex < partCount; partIndex++) {
-                    if (skipAlpha) {
-                        /* TODO
-                        while(isAlphaIndex(imageIndex) {
-                            imageIndex++;
-                        }
-                        */
-                    }
-                    byte shiftAmount = 6 - (partIndex * settings.DataDepth);
-                    byte part = (datum >> shiftAmount) & partMask;
-
-                    // Combine the data with the image
-                    byte pixel = image.GetByte(byteIndex) & pixelMask;
-                    image.SetByte(byteIndex, pixel | part);
-
-                    byteIndex++;
-                }
-            }
-
-        }
-
-        // Encode data into random pixels
-        else {
-
-            /* Prepare for encoding */
-
-            // Create an index vector that holds all possible indices for data to be hidden in
-            // Index 0 is invalid because the seed for the RNG is stored there
-            uint32_t indexCount;
-            uint32_t seed;
-
-            // An index corresponds to a pixel
-            // The seed is the data at the first index
-            // Note: indexCount does not include the first pixel
-            // Note: for bytesPerPixel == 8, the seed will be the last 32 bits of the first pixel
-            indexCount = pixelCount - 1;
-            seed = 0;
-            for (uint32_t i = 0; i < bytesPerPixel; i++) {
-                seed <<= 8;
-                seed |= image.GetByte(i);
-            }
-
-            // Random Engine generates integers on [0, indexCount - 1] (indexCount values)
-            std::default_random_engine generator(seed);
-            std::uniform_int_distribution<uint32_t> rand(0, indexCount - 1);
-
-            // Fill the index vector
-            // Note: This vector contains values from [1, indexCount] (indexCount values)
-            std::vector<uint32_t> indices(indexCount);
-            for (uint32_t i = 0; i < indexCount; i++) {
-                indices[i] = i + 1;
-            }
-
-            // Indices are pixels and they are ordered randomly
-            // Note: We pull indexCount values from the RNG in the process
-            for (uint32_t i = 0; i < indexCount; i++) {
-                uint32_t j = rand(generator);
-                std::iter_swap(indices.begin() + i, indices.begin() + j);
-            }
-
-            /* Hide information in the image */
-
-            // TODO Maybe remove this whole section?
-
-            // Each index corresponds to one random pixel
-            // Get a byte of data and insert it into the image
-            // Note: Start placing data at the first byte of the second pixel (first pixel reserved for seed)
-            for (uint32_t i = 0; i < data.size(); i++) {
-                uint32_t pixelIndex = indices[i];
-                byte datum = data[i];
-
-                // Split the byte into parts
-                uint32_t partCount = 8 / settings.DataDepth;
-
-                // Get each part and insert it into the image
-                for (uint32_t partIndex = 0; partIndex < partCount; partIndex++) {
-                    if (skipAlpha) {
-                        /* TODO
-                        while(isAlphaIndex(imageIndex) {
-                            imageIndex++;
-                        }
-                        */
-                    }
-                    byte shiftAmount = 6 - (partIndex * settings.DataDepth);
-                    byte part = (datum >> shiftAmount) & partMask;
-
-                    // Combine the data with the image
-                    byte pixel = image.GetByte(pixelIndex) & pixelMask;
-                    image.SetByte(pixelIndex, pixel | part);
-                }
-            }
-
-        }
-
-    }
-
-    void StegEngine::EncodeBytes(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
-
-        uint32_t width = image.GetWidth();
-        uint32_t height = image.GetHeight();
-        uint32_t bytesPerPixel = image.GetPixelWidth();
-        uint32_t pixelCount = width * height;
-
-        // Check if data and its depth will fit in the image
-        // Note: This check is not 100% accurate. The payload will be prepended with a header containing even more information
-        if (8 / settings.DataDepth * data.size() < bytesPerPixel * pixelCount) {
-            // Not enough available space in the image for the data and its depth
-            // TODO Throw a fit
-            return;
-        }
-
         // Create an index vector that holds all possible indices for data to be hidden in
+        // An index corresponds to a byte within a pixel and the seed is the first byte of the first channel of the first pixel
         // Index 0 is invalid because the seed for the RNG is stored there
-        uint32_t indexCount;
-        uint32_t seed;
+        uint32_t indexCount = pixelCount * bytesPerPixel;
 
-        // An index corresponds to a byte within a pixel and the seed is just the first
-        // byte of the first channel of the first pixel
-        indexCount = pixelCount * bytesPerPixel;
-        seed = image.GetByte(0);
+        uint32_t seed = image.GetByte(0);
 
         // Random Engine generates integers on [0, indexCount - 2]
         std::default_random_engine generator(seed);
@@ -184,29 +45,15 @@ namespace Steg {
 
         // Fill the index vector
         std::vector<uint32_t> indices(indexCount - 1);
-        for (uint32_t i = 0; i < indexCount; i++) {
+        for (uint32_t i = 0; i < indices.size(); i++) {
             indices[i] = i + 1;
         }
 
-        // Arrange the index vector
-        if (settings.SequentialOrder) {
-
-            // Indices are bytes and they are ordered semi-sequentially
-            // Note that we pull *** values from the RNG in the process
-            for (uint32_t i = 0; i < pixelCount - 1; i++) {
-                uint32_t baseByte = i * bytesPerPixel;
-                for (uint32_t j = 0; j < bytesPerPixel - 1; j++) {
-                    uint32_t k = j + (rand(generator) % (bytesPerPixel - j));
-                    std::iter_swap(indices.begin() + (baseByte + j), indices.begin() + (baseByte + k));
-                }
-            }
-
-        }
-        // Randomize the index vector if Sequential Order is not selected
-        else {
-
-            // TODO Indices are bytes and they are ordered randomly
-
+        // Indices are bytes and they are ordered randomly
+        // Note that we pull *** values from the RNG in the process
+        for (uint32_t i = 0; i < indices.size() - 2; i++) {
+            uint32_t j = i + (rand(generator) % (indexCount - 1 - i));
+            std::iter_swap(indices.begin() + i, indices.begin() + j);
         }
 
         /* Hide information in the image */
@@ -214,15 +61,32 @@ namespace Steg {
         const uint16_t pixelMask = GetPixelMask(image.GetBitDepth(), settings.DataDepth);
         const byte partMask = GetPartMask(image.GetBitDepth(), settings.DataDepth);
 
-        if (settings.SequentialOrder) {
+        // Get a byte of data and insert it into the image
+        uint32_t byteIndex, k = 0;
+        for (uint32_t i = 0; i < data.size(); i++) {
+            byte datum = data[i];
 
-            // TODO Each index corresponds to one random byte in sequential pixels
+            // Split the byte into parts
+            uint32_t partCount = 8 / settings.DataDepth;
 
-        }
-        else {
+            // Get each part and insert it into the image
+            for (uint32_t partIndex = 0; partIndex < partCount; partIndex++) {
+                byteIndex = indices[k++];
 
-            // TODO Each index corresponds to one random byte in random pixels
+                if (skipAlpha) {
+                    // Skip bytes until byteIndex is a color channel
+                    while (image.IsAlphaIndex(byteIndex)) {
+                        byteIndex = indices[k++];
+                    }
+                }
 
+                byte shiftAmount = (8 - settings.DataDepth) - (partIndex * settings.DataDepth);
+                byte part = (datum >> shiftAmount) & partMask;
+
+                // Combine the data with the image
+                byte pixel = image.GetByte(byteIndex) & pixelMask;
+                image.SetByte(byteIndex, pixel | part);
+            }
         }
 
     }

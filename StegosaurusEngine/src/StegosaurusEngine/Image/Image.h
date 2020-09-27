@@ -29,6 +29,8 @@ namespace Steg {
 
         byte GetByte(uint32_t index) const;
 
+        bool IsAlphaIndex(uint32_t index) const;
+
         void SetColor(uint32_t x, uint32_t y, uint64_t color);
 
         void SetByte(uint32_t index, byte value);

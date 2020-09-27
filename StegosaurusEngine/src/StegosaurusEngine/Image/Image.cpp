@@ -164,7 +164,34 @@ namespace Steg {
     byte Image::GetByte(uint32_t index) const {
         return Data[index];
     }
-    
+
+    bool Image::IsAlphaIndex(uint32_t index) const {
+        switch (Mode) {
+        case PixelMode::RGBA_8:
+            if (index % 4 == 3) {
+                return true;
+            }
+            return false;
+        case PixelMode::RGBA_16:
+            if ((index / 2) % 4 == 3) {
+                return true;
+            }
+            return false;
+        case PixelMode::GRAYA_8:
+            if (index % 2 == 1) {
+                return true;
+            }
+            return false;
+        case PixelMode::GRAYA_16:
+            if ((index / 2) % 2 == 1) {
+                return true;
+            }
+            return false;
+        default:
+            return false;
+        }
+    }
+
     // TODO This type is insufficient for 16 bit modes
     void Image::SetColor(uint32_t x, uint32_t y, uint64_t color) {
         uint32_t bitDepth = GetBitDepth(Mode);
