@@ -9,24 +9,46 @@ namespace Steg {
 
     void StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
 
-        // TODO Prepend data vector with header information
-        std::vector<byte> header();
-
         // Width of the image
         uint32_t width = image.GetWidth();
+
         // Height of the image
         uint32_t height = image.GetHeight();
+
         // Pixel width of the image
         uint32_t bytesPerPixel = image.GetPixelWidth();
+
         // Number of pixels in the image
         uint32_t pixelCount = width * height;
+
+        // Number of bytes in the data payload
+        uint32_t dataByteCount = data.size();
+
         // Skip over the alpha channel while encoding
         bool skipAlpha = !(image.HasAlpha() && settings.EncodeInAlpha);
 
+        /* Prepend data vector with header information */
+
+        std::vector<byte> header;
+
+        // Add headerByteCount to header
+        // This value is 6 right now, but this will be different for variable header sizes
+        // Note: 6 includes this byte
+        header.push_back(byte(6));
+
+        // Add dataByteCount to header
+        header.push_back((byte)(dataByteCount >> 24 & 0xFF));
+        header.push_back((byte)(dataByteCount >> 16 & 0xFF));
+        header.push_back((byte)(dataByteCount >> 8 & 0xFF));
+        header.push_back((byte)(dataByteCount & 0xFF));
+
+        // Add encoder settings to header
+        byte settingsByte = settings.ToByte();
+        header.push_back(settingsByte);
+
         // Check if data and its depth will fit in the image
-        // Note: This check is not 100% accurate. The payload will be prepended with a header containing even more information
-        // TODO Make this 100% accurate
-        if (8 / settings.DataDepth * data.size() > bytesPerPixel * pixelCount) {
+        // The "+ 1" accounts for the byte that represents the seed for the RNG
+        if (8 / settings.DataDepth * (dataByteCount + header.size()) + 1 > bytesPerPixel * pixelCount) {
             // Not enough available space in the image for the data and its depth
             // TODO Throw a fit
             return;
@@ -37,6 +59,8 @@ namespace Steg {
         // Index 0 is invalid because the seed for the RNG is stored there
         uint32_t indexCount = pixelCount * bytesPerPixel;
 
+        // Get the seed for the RNG
+        // It will always be the first byte of the image.
         uint32_t seed = image.GetByte(0);
 
         // Random Engine generates integers on [0, indexCount - 2]
@@ -61,9 +85,37 @@ namespace Steg {
         const uint16_t pixelMask = GetPixelMask(image.GetBitDepth(), settings.DataDepth);
         const byte partMask = GetPartMask(image.GetBitDepth(), settings.DataDepth);
 
-        // Get a byte of data and insert it into the image
+        // Write header information first
         uint32_t byteIndex, k = 0;
-        for (uint32_t i = 0; i < data.size(); i++) {
+        for (uint32_t i = 0; i < header.size(); i++) {
+            byte datum = header[i];
+
+            // Split the byte into parts
+            uint32_t partCount = 8 / settings.DataDepth;
+
+            // Get each part and insert it into the image
+            for (uint32_t partIndex = 0; partIndex < partCount; partIndex++) {
+                byteIndex = indices[k++];
+
+                if (skipAlpha) {
+                    // Skip bytes until byteIndex is a color channel
+                    while (image.IsAlphaIndex(byteIndex)) {
+                        byteIndex = indices[k++];
+                    }
+                }
+
+                byte shiftAmount = (8 - settings.DataDepth) - (partIndex * settings.DataDepth);
+                byte part = (datum >> shiftAmount) & partMask;
+
+                // Combine the data with the image
+                byte pixel = image.GetByte(byteIndex) & pixelMask;
+                image.SetByte(byteIndex, pixel | part);
+            }
+        }
+
+        // Write data payload next
+        // Get a byte of data and insert it into the image
+        for (uint32_t i = 0; i < dataByteCount; i++) {
             byte datum = data[i];
 
             // Split the byte into parts

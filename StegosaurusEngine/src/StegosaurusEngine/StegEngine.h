@@ -22,6 +22,36 @@ namespace Steg {
 
         // TODO Encryption options
 
+        byte ToByte() const {
+
+            // DataDepth has 4 possible values so it will occupy 2 bits
+            byte result = 0;
+            if (DataDepth == 1) {
+                result |= 0b00;
+            }
+            else if (DataDepth == 2) {
+                result |= 0b01;
+            }
+            else if (DataDepth == 4) {
+                result |= 0b10;
+            }
+            else if (DataDepth == 8) {
+                result |= 0b11;
+            }
+            else {
+                // TODO Throw a fit probably
+                return 0;
+            }
+            result <<= 1;
+
+            // Each bool has 2 possible values so they will occupy 1 bit each
+            result |= (byte)EncodeInAlpha;
+
+            // TODO Add more bool flags here as needed
+
+            return result;
+        }
+
     };
 
     class StegEngine {
