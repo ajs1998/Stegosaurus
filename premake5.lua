@@ -46,7 +46,7 @@ project "StegosaurusEngine"
     }
 
     postbuildcommands {
-        ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. OutDir .. "/Stegosaurus")
+        ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. OutDir .. "/StegosaurusApplication")
     }
     
 	filter "configurations:Debug"
@@ -57,8 +57,8 @@ project "StegosaurusEngine"
 		defines "STEGOSAURUS_RELEASE"
 		optimize "On"
 
-project "Stegosaurus"
-	location "Stegosaurus"
+project "StegosaurusApplication"
+	location "StegosaurusApplication"
     staticruntime "On"
 	kind "ConsoleApp"
 	language "C++"
