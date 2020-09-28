@@ -1,0 +1,6 @@
+[submodule "StegosaurusEngine/vendor/lodepng"]
+	path = StegosaurusEngine/vendor/lodepng
+	url = https://github.com/lvandeve/lodepng
+[submodule "StegosaurusEngine/vendor/cryptopp"]
+	path = StegosaurusEngine/vendor/cryptopp
+	url = https://github.com/weidai11/cryptopp
