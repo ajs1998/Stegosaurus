@@ -10,6 +10,7 @@ OutDir = "%{cfg.buildcfg}/%{cfg.system}-%{cfg.architecture}"
 
 AdditionalIncludeDirs = {}
 AdditionalIncludeDirs["lodepng"] = "StegosaurusEngine/vendor/lodepng"
+AdditionalIncludeDirs["cryptopp"] = "StegosaurusEngine/vendor/cryptopp"
 
 project "StegosaurusEngine"
 	location "StegosaurusEngine"
@@ -25,17 +26,19 @@ project "StegosaurusEngine"
 	pchsource "StegosaurusEngine/src/stegosaurus_pch.cpp"
 
 	files {
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.cpp"
 	}
 
 	includedirs {
 		"%{prj.name}/src",
-        "%{AdditionalIncludeDirs.lodepng}"
+        "%{AdditionalIncludeDirs.lodepng}",
+        "%{AdditionalIncludeDirs.cryptopp}"
 	}
 
     links {
-        "lodepng"
+        "lodepng",
+	    "cryptopp"
     }
 
     defines {
@@ -72,7 +75,8 @@ project "Stegosaurus"
 	includedirs {
 		"%{prj.name}/src",
 		"StegosaurusEngine/src",
-        "%{AdditionalIncludeDirs.lodepng}"
+        "%{AdditionalIncludeDirs.lodepng}",
+	    "%{AdditionalIncludeDirs.cryptopp}"
 	}
 
 	links {
@@ -104,6 +108,31 @@ project "lodepng"
 	includedirs {
 		"StegosaurusEngine/vendor/%{prj.name}/lodepng.h",
 		"StegosaurusEngine/vendor/%{prj.name}/lodepng.cpp"
+	}
+
+	filter "configurations:Debug"
+		symbols "On"
+
+	filter "configurations:Release"
+		optimize "On"
+
+project "cryptopp"
+    location "StegosaurusEngine/vendor/cryptopp"
+    staticruntime "On"
+    kind "StaticLib"
+    language "C++"
+    
+	targetdir ("bin/" .. OutDir .. "/%{prj.name}")
+	objdir ("bin-obj/" .. OutDir .. "/%{prj.name}")
+
+	files {
+		"StegosaurusEngine/vendor/%{prj.name}/*.h",
+		"StegosaurusEngine/vendor/%{prj.name}/*.cpp"
+    }
+    
+	includedirs {
+		"StegosaurusEngine/vendor/%{prj.name}/*.h",
+		"StegosaurusEngine/vendor/%{prj.name}/*.cpp"
 	}
 
 	filter "configurations:Debug"
