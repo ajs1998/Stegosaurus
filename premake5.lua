@@ -126,15 +126,20 @@ project "tiny-AES"
 	objdir ("bin-obj/" .. OutDir .. "/%{prj.name}")
 
 	files {
-		"StegosaurusEngine/vendor/%{prj.name}/**.h",
-		"StegosaurusEngine/vendor/%{prj.name}/**.hpp",
-		"StegosaurusEngine/vendor/%{prj.name}/**.in",
-		"StegosaurusEngine/vendor/%{prj.name}/**.cpp"
+		"StegosaurusEngine/vendor/%{prj.name}/aes.h",
+		"StegosaurusEngine/vendor/%{prj.name}/aes.hpp",
+		"StegosaurusEngine/vendor/%{prj.name}/aes.c"
     }
     
 	includedirs {
 		"StegosaurusEngine/vendor/%{prj.name}",
 	}
+
+    defines {
+        "CBC=1",
+        "ECB=0",
+        "CTR=0"
+    }
 
 	filter "configurations:Debug"
 		symbols "On"

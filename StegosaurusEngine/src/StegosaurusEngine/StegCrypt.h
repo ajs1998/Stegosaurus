@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-#include <openssl/aes.h>
-
 namespace Steg {
 
     class StegCrypt {
