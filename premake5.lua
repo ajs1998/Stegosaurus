@@ -10,7 +10,7 @@ OutDir = "%{cfg.buildcfg}/%{cfg.system}-%{cfg.architecture}"
 
 AdditionalIncludeDirs = {}
 AdditionalIncludeDirs["lodepng"] = "StegosaurusEngine/vendor/lodepng"
-AdditionalIncludeDirs["cryptopp"] = "StegosaurusEngine/vendor/cryptopp"
+AdditionalIncludeDirs["openssl"] = "StegosaurusEngine/vendor/openssl/include"
 
 project "StegosaurusEngine"
 	location "StegosaurusEngine"
@@ -33,12 +33,12 @@ project "StegosaurusEngine"
 	includedirs {
 		"%{prj.name}/src",
         "%{AdditionalIncludeDirs.lodepng}",
-        "%{AdditionalIncludeDirs.cryptopp}"
+        "%{AdditionalIncludeDirs.openssl}"
 	}
 
     links {
         "lodepng",
-	    "cryptopp"
+	    "openssl"
     }
 
     defines {
@@ -76,7 +76,7 @@ project "StegosaurusApplication"
 		"%{prj.name}/src",
 		"StegosaurusEngine/src",
         "%{AdditionalIncludeDirs.lodepng}",
-	    "%{AdditionalIncludeDirs.cryptopp}"
+	    "%{AdditionalIncludeDirs.openssl}"
 	}
 
 	links {
@@ -116,23 +116,24 @@ project "lodepng"
 	filter "configurations:Release"
 		optimize "On"
 
-project "cryptopp"
-    location "StegosaurusEngine/vendor/cryptopp"
+project "tiny-AES"
+    location "StegosaurusEngine/vendor/tiny-AES"
     staticruntime "On"
     kind "StaticLib"
-    language "C++"
+    language "C"
     
 	targetdir ("bin/" .. OutDir .. "/%{prj.name}")
 	objdir ("bin-obj/" .. OutDir .. "/%{prj.name}")
 
 	files {
-		"StegosaurusEngine/vendor/%{prj.name}/*.h",
-		"StegosaurusEngine/vendor/%{prj.name}/*.cpp"
+		"StegosaurusEngine/vendor/%{prj.name}/**.h",
+		"StegosaurusEngine/vendor/%{prj.name}/**.hpp",
+		"StegosaurusEngine/vendor/%{prj.name}/**.in",
+		"StegosaurusEngine/vendor/%{prj.name}/**.cpp"
     }
     
 	includedirs {
-		"StegosaurusEngine/vendor/%{prj.name}/*.h",
-		"StegosaurusEngine/vendor/%{prj.name}/*.cpp"
+		"StegosaurusEngine/vendor/%{prj.name}/include",
 	}
 
 	filter "configurations:Debug"
