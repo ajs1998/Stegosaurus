@@ -10,7 +10,7 @@ OutDir = "%{cfg.buildcfg}/%{cfg.system}-%{cfg.architecture}"
 
 AdditionalIncludeDirs = {}
 AdditionalIncludeDirs["lodepng"] = "StegosaurusEngine/vendor/lodepng"
-AdditionalIncludeDirs["openssl"] = "StegosaurusEngine/vendor/openssl/include"
+AdditionalIncludeDirs["tiny-AES"] = "StegosaurusEngine/vendor/tiny-AES"
 
 project "StegosaurusEngine"
 	location "StegosaurusEngine"
@@ -33,12 +33,12 @@ project "StegosaurusEngine"
 	includedirs {
 		"%{prj.name}/src",
         "%{AdditionalIncludeDirs.lodepng}",
-        "%{AdditionalIncludeDirs.openssl}"
+        "%{AdditionalIncludeDirs.tiny-AES}"
 	}
 
     links {
         "lodepng",
-	    "openssl"
+	    "tiny-AES"
     }
 
     defines {
@@ -76,7 +76,7 @@ project "StegosaurusApplication"
 		"%{prj.name}/src",
 		"StegosaurusEngine/src",
         "%{AdditionalIncludeDirs.lodepng}",
-	    "%{AdditionalIncludeDirs.openssl}"
+	    "%{AdditionalIncludeDirs.tiny-AES}"
 	}
 
 	links {
