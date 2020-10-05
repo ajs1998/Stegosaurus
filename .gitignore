@@ -1,6 +1,6 @@
 /*
 !.gitignore
-!/Stegosaurus
+!/StegosaurusApplication
 !/StegosaurusEngine
 !premake5.lua
 *.vcxproj
