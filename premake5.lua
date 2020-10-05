@@ -10,7 +10,7 @@ OutDir = "%{cfg.buildcfg}/%{cfg.system}-%{cfg.architecture}"
 
 AdditionalIncludeDirs = {}
 AdditionalIncludeDirs["lodepng"] = "StegosaurusEngine/vendor/lodepng"
-AdditionalIncludeDirs["tiny-AES"] = "StegosaurusEngine/vendor/tiny-AES"
+AdditionalIncludeDirs["tinyAES"] = "StegosaurusEngine/vendor/tiny-AES"
 
 project "StegosaurusEngine"
 	location "StegosaurusEngine"
@@ -33,12 +33,12 @@ project "StegosaurusEngine"
 	includedirs {
 		"%{prj.name}/src",
         "%{AdditionalIncludeDirs.lodepng}",
-        "%{AdditionalIncludeDirs.tiny-AES}"
+        "%{AdditionalIncludeDirs.tinyAES}"
 	}
 
     links {
         "lodepng",
-	    "tiny-AES"
+	    "tinyAES"
     }
 
     defines {
@@ -76,7 +76,7 @@ project "StegosaurusApplication"
 		"%{prj.name}/src",
 		"StegosaurusEngine/src",
         "%{AdditionalIncludeDirs.lodepng}",
-	    "%{AdditionalIncludeDirs.tiny-AES}"
+	    "%{AdditionalIncludeDirs.tinyAES}"
 	}
 
 	links {
@@ -133,7 +133,7 @@ project "tiny-AES"
     }
     
 	includedirs {
-		"StegosaurusEngine/vendor/%{prj.name}/include",
+		"StegosaurusEngine/vendor/%{prj.name}",
 	}
 
 	filter "configurations:Debug"
