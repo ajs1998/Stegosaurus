@@ -38,7 +38,7 @@ project "StegosaurusEngine"
 
     links {
         "lodepng",
-	    "tinyAES"
+	    "tiny-AES"
     }
 
     defines {
@@ -48,7 +48,7 @@ project "StegosaurusEngine"
     postbuildcommands {
         ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. OutDir .. "/StegosaurusApplication")
     }
-    
+
 	filter "configurations:Debug"
 		defines "STEGOSAURUS_DEBUG"
 		symbols "On"
@@ -132,7 +132,9 @@ project "tiny-AES"
     }
     
 	includedirs {
-		"StegosaurusEngine/vendor/%{prj.name}",
+		"StegosaurusEngine/vendor/%{prj.name}/aes.h",
+		"StegosaurusEngine/vendor/%{prj.name}/aes.hpp",
+		"StegosaurusEngine/vendor/%{prj.name}/aes.c"
 	}
 
     defines {
