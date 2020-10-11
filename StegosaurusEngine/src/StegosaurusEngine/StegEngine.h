@@ -20,7 +20,10 @@ namespace Steg {
 
         // TODO Normalize image option
 
-        // TODO Encryption options
+        // TRUE: Encrypt data before encoding
+        // FALSE: Leave payload alone
+        // Note: Encrypting may increase the payload size slightly
+        bool EncryptPayload = false;
 
         byte ToByte() const {
 
@@ -46,10 +49,40 @@ namespace Steg {
 
             // Each bool has 2 possible values so they will occupy 1 bit each
             result |= (byte)EncodeInAlpha;
+            result <<= 1;
+
+            result |= (byte)EncryptPayload;
 
             // TODO Add more bool flags here as needed
 
             return result;
+
+        }
+
+        static EncoderSettings FromByte(const byte& settingsByte) {
+
+            EncoderSettings settings;
+
+            settings.EncryptPayload = settingsByte & 0x01;
+
+            settings.EncodeInAlpha = settingsByte >> 1 & 0x01;
+
+            byte depth = settingsByte >> 2 & 0x11;
+            if (depth == 0x00) {
+                settings.DataDepth = 1;
+            }
+            else if (depth == 0x01) {
+                settings.DataDepth = 2;
+            }
+            else if (depth == 0x10) {
+                settings.DataDepth = 4;
+            }
+            else if (depth == 0x11) {
+                settings.DataDepth = 8;
+            }
+
+            return settings;
+
         }
 
     };

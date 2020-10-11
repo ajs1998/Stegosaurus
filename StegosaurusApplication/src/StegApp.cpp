@@ -14,7 +14,7 @@ StegApp::StegApp() {
     Steg::Image image("C:/Users/Alex/Desktop/In.png");
     std::vector<byte> key({ 2, 3, 4, 5 });
     std::vector<byte> data(207, (byte)228); // 228 = 11100100
-    Steg::StegEngine::Encode(image, Steg::StegCrypt::Encrypt(key, data), { 2, false });
+    Steg::StegEngine::Encode(image, Steg::StegCrypt::Encrypt(key, data), { 2, false, true });
     image.SaveImage("C:/Users/Alex/Desktop/Out.png");
 
 }
