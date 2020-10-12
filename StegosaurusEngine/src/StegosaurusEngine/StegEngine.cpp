@@ -1,6 +1,8 @@
 #include <stegosaurus_pch.h>
 
 #include "StegEngine.h"
+
+#include "StegCrypt.h"
 #include <StegosaurusEngine\Image\RGBImage.h>
 
 #include <random>
@@ -8,6 +10,15 @@
 namespace Steg {
 
     void StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
+
+        // Prepare the payload
+        std::vector<byte> payload;
+        if (settings.EncryptPayload) {
+            payload = StegCrypt::Encrypt(settings.EncryptionKey, data);
+        }
+        else {
+            payload = data;
+        }
 
         // Width of the image
         uint32_t width = image.GetWidth();
@@ -22,7 +33,7 @@ namespace Steg {
         uint32_t pixelCount = width * height;
 
         // Number of bytes in the data payload
-        uint32_t dataByteCount = data.size();
+        uint32_t payloadByteCount = payload.size();
 
         // Skip over the alpha channel while encoding
         bool skipAlpha = !(image.HasAlpha() && settings.EncodeInAlpha);
@@ -37,10 +48,10 @@ namespace Steg {
         header.push_back(byte(6));
 
         // Add dataByteCount to header
-        header.push_back((byte)(dataByteCount >> 24 & 0xFF));
-        header.push_back((byte)(dataByteCount >> 16 & 0xFF));
-        header.push_back((byte)(dataByteCount >> 8 & 0xFF));
-        header.push_back((byte)(dataByteCount & 0xFF));
+        header.push_back((byte)(payloadByteCount >> 24 & 0xFF));
+        header.push_back((byte)(payloadByteCount >> 16 & 0xFF));
+        header.push_back((byte)(payloadByteCount >> 8 & 0xFF));
+        header.push_back((byte)(payloadByteCount & 0xFF));
 
         // Add encoder settings to header
         byte settingsByte = settings.ToByte();
@@ -48,7 +59,7 @@ namespace Steg {
 
         // Check if data and its depth will fit in the image
         // The "+ 1" accounts for the byte that represents the seed for the RNG
-        if (8 / settings.DataDepth * (dataByteCount + header.size()) + 1 > bytesPerPixel * pixelCount) {
+        if (8 / settings.DataDepth * (payloadByteCount + header.size()) + 1 > bytesPerPixel * pixelCount) {
             // Not enough available space in the image for the data and its depth
             // TODO Throw a fit
             return;
@@ -115,8 +126,8 @@ namespace Steg {
 
         // Write data payload next
         // Get a byte of data and insert it into the image
-        for (uint32_t i = 0; i < dataByteCount; i++) {
-            byte datum = data[i];
+        for (uint32_t i = 0; i < payloadByteCount; i++) {
+            byte datum = payload[i];
 
             // Split the byte into parts
             uint32_t partCount = 8 / settings.DataDepth;

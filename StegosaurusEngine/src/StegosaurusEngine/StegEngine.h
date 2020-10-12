@@ -24,6 +24,7 @@ namespace Steg {
         // FALSE: Leave payload alone
         // Note: Encrypting may increase the payload size slightly
         bool EncryptPayload = false;
+        std::vector<byte> EncryptionKey;
 
         byte ToByte() const {
 
