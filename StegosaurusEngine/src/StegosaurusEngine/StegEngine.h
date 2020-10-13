@@ -3,6 +3,7 @@
 #include <StegosaurusEngine/Core.h>
 
 #include "Image/Image.h"
+#include <random>
 
 namespace Steg {
 
@@ -60,15 +61,17 @@ namespace Steg {
 
         }
 
-        static EncoderSettings FromByte(const byte& settingsByte) {
+        static EncoderSettings FromByte(byte settingsByte) {
 
             EncoderSettings settings;
 
             settings.EncryptPayload = settingsByte & 0x01;
+            settingsByte >>= 1;
 
-            settings.EncodeInAlpha = settingsByte >> 1 & 0x01;
+            settings.EncodeInAlpha = settingsByte & 0x01;
+            settingsByte >>= 1;
 
-            byte depth = settingsByte >> 2 & 0x11;
+            byte depth = settingsByte & 0x11;
             if (depth == 0x00) {
                 settings.DataDepth = 1;
             }
@@ -88,19 +91,44 @@ namespace Steg {
 
     };
 
+    struct RNG {
+
+    private:
+
+        std::default_random_engine generator;
+
+        std::uniform_int_distribution<uint32_t> rand;
+
+    public:
+
+        uint32_t count;
+
+        RNG() = delete;
+
+        RNG(uint32_t seed, uint32_t upperBound) : generator(seed), rand(0, upperBound), count(0) {}
+
+        uint32_t Next() {
+            count++;
+            return rand(generator);
+        }
+
+    };
+
     class StegEngine {
 
     public:
 
         static void Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings);
 
-        // static std::vector<byte> Decode(const Image& image);
+        static std::vector<byte> Decode(const Image& image, const std::vector<byte> key);
 
     private:
 
         static uint16_t GetPixelMask(uint32_t imageBitDepth, uint32_t dataBitDepth);
 
         static byte GetPartMask(uint32_t imageBitDepth, uint32_t dataBitDepth);
+
+        static std::vector<uint32_t> GenerateIndices(uint32_t seed, RNG& rng);
 
     };
 

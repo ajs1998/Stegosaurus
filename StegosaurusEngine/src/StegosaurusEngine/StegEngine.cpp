@@ -5,8 +5,6 @@
 #include "StegCrypt.h"
 #include <StegosaurusEngine\Image\RGBImage.h>
 
-#include <random>
-
 namespace Steg {
 
     void StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
@@ -74,55 +72,42 @@ namespace Steg {
         // It will always be the first byte of the image.
         uint32_t seed = image.GetByte(0);
 
+        // Create the RNG
         // Random Engine generates integers on [0, indexCount - 2]
-        std::default_random_engine generator(seed);
-        std::uniform_int_distribution<uint32_t> rand(0, indexCount - 2);
+        RNG rng(seed, indexCount - 2);
 
         // Fill the index vector
-        std::vector<uint32_t> indices(indexCount - 1);
-        for (uint32_t i = 0; i < indices.size(); i++) {
-            indices[i] = i + 1;
-        }
-
-        // Indices are bytes and they are ordered randomly
-        // Note that we pull *** values from the RNG in the process
-        for (uint32_t i = 0; i < indices.size() - 2; i++) {
-            uint32_t j = i + (rand(generator) % (indexCount - 1 - i));
-            std::iter_swap(indices.begin() + i, indices.begin() + j);
-        }
+        std::vector<uint32_t> indices = GenerateIndices(indexCount, rng);
 
         /* Hide information in the image */
 
-        const uint16_t pixelMask = GetPixelMask(image.GetBitDepth(), settings.DataDepth);
-        const byte partMask = GetPartMask(image.GetBitDepth(), settings.DataDepth);
-
         // Write header information first
+        // Since encoding information will be unavailable when decoding, default to the most conservative settings
+        // DataDepth for the header is effectively 1 bit
+        // skipAlpha is effectively true
         uint32_t byteIndex, k = 0;
         for (uint32_t i = 0; i < header.size(); i++) {
             byte datum = header[i];
 
-            // Split the byte into parts
-            uint32_t partCount = 8 / settings.DataDepth;
-
             // Get each part and insert it into the image
-            for (uint32_t partIndex = 0; partIndex < partCount; partIndex++) {
-                byteIndex = indices[k++];
+            for (uint32_t partIndex = 0; partIndex < 8; partIndex++) {
+                // Skip bytes until byteIndex is a color channel
+                do {
+                    byteIndex = indices[k++];
+                } while (image.IsAlphaIndex(byteIndex));
 
-                if (skipAlpha) {
-                    // Skip bytes until byteIndex is a color channel
-                    while (image.IsAlphaIndex(byteIndex)) {
-                        byteIndex = indices[k++];
-                    }
-                }
-
-                byte shiftAmount = (8 - settings.DataDepth) - (partIndex * settings.DataDepth);
-                byte part = (datum >> shiftAmount) & partMask;
+                byte shiftAmount = 7 - partIndex;
+                byte part = (datum >> shiftAmount) & 0x1;
 
                 // Combine the data with the image
-                byte pixel = image.GetByte(byteIndex) & pixelMask;
-                image.SetByte(byteIndex, pixel | part);
+                byte pixel = image.GetByte(byteIndex) & (0xFF << 1);
+                part |= pixel;
+                image.SetByte(byteIndex, part);
             }
         }
+
+        const uint16_t pixelMask = GetPixelMask(image.GetBitDepth(), settings.DataDepth);
+        const byte partMask = GetPartMask(image.GetBitDepth(), settings.DataDepth);
 
         // Write data payload next
         // Get a byte of data and insert it into the image
@@ -148,9 +133,140 @@ namespace Steg {
 
                 // Combine the data with the image
                 byte pixel = image.GetByte(byteIndex) & pixelMask;
-                image.SetByte(byteIndex, pixel | part);
+                part |= pixel;
+                image.SetByte(byteIndex, part);
             }
         }
+
+    }
+
+    std::vector<byte> StegEngine::Decode(const Image& image, const std::vector<byte> key) {
+
+        // Width of the image
+        uint32_t width = image.GetWidth();
+
+        // Height of the image
+        uint32_t height = image.GetHeight();
+
+        // Pixel width of the image
+        uint32_t bytesPerPixel = image.GetPixelWidth();
+
+        // Number of pixels in the image
+        uint32_t pixelCount = width * height;
+
+        // Create an index vector that holds all possible indices for data to be hidden in
+        // An index corresponds to a byte within a pixel and the seed is the first byte of the first channel of the first pixel
+        // Index 0 is invalid because the seed for the RNG is stored there
+        uint32_t indexCount = pixelCount * bytesPerPixel;
+
+        // Get the seed for the RNG
+        // It will always be the first byte of the image.
+        uint32_t seed = image.GetByte(0);
+
+        // Create the RNG
+        // Random Engine generates integers on [0, indexCount - 2]
+        RNG rng(seed, indexCount - 2);
+
+        // Fill the index vector
+        std::vector<uint32_t> indices = GenerateIndices(indexCount, rng);
+
+        /* Find information in the image */
+
+        // Get the first byte of the header (header size)
+        uint32_t byteIndex, k = 0;
+        uint32_t headerSize = 0;
+        uint32_t partCount = 8;
+        for (uint32_t partIndex = 0; partIndex < partCount; partIndex++) {
+            // Skip bytes until byteIndex is a color channel
+            do {
+                byteIndex = indices[k++];
+            } while (image.IsAlphaIndex(byteIndex));
+
+            // Combine the data with the image
+            headerSize <<= 1;
+            headerSize |= image.GetByte(byteIndex) & 0x1;
+        }
+
+        // Read the rest of the header information
+        // Since encoding information is unavailable here, default to the most conservative settings
+        // DataDepth for the header is effectively 1 bit
+        // skipAlpha is effectively true
+        std::vector<byte> header;
+        for (uint32_t i = 0; i < headerSize - uint32_t(1); i++) {
+
+            // Get each part and insert it into the image
+            byte datum = 0;
+            for (uint32_t partIndex = 0; partIndex < partCount; partIndex++) {
+                // Skip bytes until byteIndex is a color channel
+                do {
+                    byteIndex = indices[k++];
+                } while (image.IsAlphaIndex(byteIndex));
+
+                // Combine the data with the image
+                byte imageByte = image.GetByte(byteIndex);
+
+                datum <<= 1;
+                datum |= imageByte & 0x1;
+            }
+
+            header.push_back(datum);
+        }
+
+        uint32_t payloadByteCount = header[0];
+        payloadByteCount <<= 8;
+        payloadByteCount |= header[1];
+        payloadByteCount <<= 8;
+        payloadByteCount |= header[2];
+        payloadByteCount <<= 8;
+        payloadByteCount |= header[3];
+
+        byte settingsByte = header[4];
+
+        EncoderSettings settings = EncoderSettings::FromByte(settingsByte);
+        settings.EncryptionKey = key;
+
+        // Skip over the alpha channel while encoding
+        bool skipAlpha = !(image.HasAlpha() && settings.EncodeInAlpha);
+
+        const uint16_t pixelMask = GetPixelMask(image.GetBitDepth(), settings.DataDepth);
+        const byte partMask = GetPartMask(image.GetBitDepth(), settings.DataDepth);
+
+        // Read data payload next
+        // Get a byte of data and insert it into the image
+        std::vector<byte> payload;
+        for (uint32_t i = 0; i < payloadByteCount; i++) {
+            // Split the byte into parts
+            uint32_t partCount = 8 / settings.DataDepth;
+
+            // Get each part and insert it into the image
+            byte datum = 0;
+            for (uint32_t partIndex = 0; partIndex < partCount; partIndex++) {
+                byteIndex = indices[k++];
+
+                if (skipAlpha) {
+                    // Skip bytes until byteIndex is a color channel
+                    while (image.IsAlphaIndex(byteIndex)) {
+                        byteIndex = indices[k++];
+                    }
+                }
+
+                byte shiftAmount = (8 - settings.DataDepth) - (partIndex * settings.DataDepth);
+
+                datum |= image.GetByte(byteIndex) << shiftAmount;
+            }
+
+            payload.push_back(datum);
+        }
+
+        std::vector<byte> data;
+        if (settings.EncryptPayload) {
+            data = StegCrypt::Decrypt(settings.EncryptionKey, payload);
+        }
+        else {
+            data = payload;
+        }
+
+        return data;
 
     }
 
@@ -184,6 +300,21 @@ namespace Steg {
             // TODO Throw a fit maybe?
             return 0;
         }
+    }
+
+    std::vector<uint32_t> StegEngine::GenerateIndices(uint32_t indexCount, RNG& rng) {
+        std::vector<uint32_t> indices(indexCount - 1);
+        for (uint32_t i = 0; i < indices.size(); i++) {
+            indices[i] = i + 1;
+        }
+
+        // Indices are bytes and they are ordered randomly
+        // Note that we pull *** values from the RNG in the process
+        for (uint32_t i = 0; i < indices.size() - 2; i++) {
+            uint32_t j = i + (rng.Next() % (indexCount - 1 - i));
+            std::iter_swap(indices.begin() + i, indices.begin() + j);
+        }
+        return indices;
     }
 
 }
