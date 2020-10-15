@@ -18,7 +18,7 @@ StegApp::StegApp() {
     Steg::EncoderSettings settings;
     settings.DataDepth = 2;
     settings.EncodeInAlpha = false;
-    settings.EncryptPayload = false;
+    settings.EncryptPayload = true;
     settings.EncryptionKey = key;
 
     Steg::StegEngine::Encode(image, data, settings);
