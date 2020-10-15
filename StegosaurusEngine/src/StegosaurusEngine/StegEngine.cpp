@@ -9,7 +9,7 @@ namespace Steg {
 
     void StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
 
-        // Prepare the payload
+        // Encrypt the payload if necessary
         std::vector<byte> payload;
         if (settings.EncryptPayload) {
             payload = StegCrypt::Encrypt(settings.EncryptionKey, data);
@@ -100,8 +100,7 @@ namespace Steg {
                 byte part = (datum >> shiftAmount) & 0x1;
 
                 // Combine the data with the image
-                byte pixel = image.GetByte(byteIndex) & (0xFF << 1);
-                part |= pixel;
+                part |= image.GetByte(byteIndex) & (0xFF << 1);
                 image.SetByte(byteIndex, part);
             }
         }
@@ -132,8 +131,7 @@ namespace Steg {
                 byte part = (datum >> shiftAmount) & partMask;
 
                 // Combine the data with the image
-                byte pixel = image.GetByte(byteIndex) & pixelMask;
-                part |= pixel;
+                part |= image.GetByte(byteIndex) & pixelMask;
                 image.SetByte(byteIndex, part);
             }
         }
@@ -182,7 +180,7 @@ namespace Steg {
                 byteIndex = indices[k++];
             } while (image.IsAlphaIndex(byteIndex));
 
-            // Combine the data with the image
+            // Extract the data from the image
             headerSize <<= 1;
             headerSize |= image.GetByte(byteIndex) & 0x1;
         }
@@ -202,16 +200,15 @@ namespace Steg {
                     byteIndex = indices[k++];
                 } while (image.IsAlphaIndex(byteIndex));
 
-                // Combine the data with the image
-                byte imageByte = image.GetByte(byteIndex);
-
+                // Extract the data from the image
                 datum <<= 1;
-                datum |= imageByte & 0x1;
+                datum |= image.GetByte(byteIndex) & 0x1;
             }
 
             header.push_back(datum);
         }
 
+        // Compute the size of the payload
         uint32_t payloadByteCount = header[0];
         payloadByteCount <<= 8;
         payloadByteCount |= header[1];
@@ -220,8 +217,8 @@ namespace Steg {
         payloadByteCount <<= 8;
         payloadByteCount |= header[3];
 
+        // Reconstruct the EncoderSettings
         byte settingsByte = header[4];
-
         EncoderSettings settings = EncoderSettings::FromByte(settingsByte);
         settings.EncryptionKey = key;
 
@@ -250,15 +247,15 @@ namespace Steg {
                     }
                 }
 
+                // Extract the data from the image
                 byte shiftAmount = (8 - settings.DataDepth) - (partIndex * settings.DataDepth);
-                byte pixelByte = image.GetByte(byteIndex);
-
-                datum |= (pixelByte & partMask) << shiftAmount ;
+                datum |= (image.GetByte(byteIndex) & partMask) << shiftAmount ;
             }
 
             payload.push_back(datum);
         }
 
+        // Decrypt the payload if necessary
         std::vector<byte> data;
         if (settings.EncryptPayload) {
             data = StegCrypt::Decrypt(settings.EncryptionKey, payload);
