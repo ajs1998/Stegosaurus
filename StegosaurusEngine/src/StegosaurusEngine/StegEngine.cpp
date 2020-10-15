@@ -251,8 +251,9 @@ namespace Steg {
                 }
 
                 byte shiftAmount = (8 - settings.DataDepth) - (partIndex * settings.DataDepth);
+                byte pixelByte = image.GetByte(byteIndex);
 
-                datum |= image.GetByte(byteIndex) << shiftAmount;
+                datum |= (pixelByte << shiftAmount) & partMask;
             }
 
             payload.push_back(datum);
