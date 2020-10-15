@@ -2,8 +2,8 @@
 
 #include <StegosaurusEngine/Core.h>
 
+#include "RNG.h"
 #include "Image/Image.h"
-#include <random>
 
 namespace Steg {
 
@@ -87,29 +87,6 @@ namespace Steg {
 
             return settings;
 
-        }
-
-    };
-
-    struct RNG {
-
-    private:
-
-        std::default_random_engine generator;
-
-        std::uniform_int_distribution<uint32_t> rand;
-
-    public:
-
-        uint32_t count;
-
-        RNG() = delete;
-
-        RNG(uint32_t seed, uint32_t upperBound) : generator(seed), rand(0, upperBound), count(0) {}
-
-        uint32_t Next() {
-            count++;
-            return rand(generator);
         }
 
     };

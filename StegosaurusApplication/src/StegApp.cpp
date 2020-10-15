@@ -24,9 +24,9 @@ StegApp::StegApp() {
     Steg::StegEngine::Encode(image, data, settings);
     image.SaveImage("C:/Users/Alex/Desktop/Out.png");
 
-    auto aa = Steg::StegEngine::Decode(image, key);
+    auto decodedBytes = Steg::StegEngine::Decode(image, key);
 
-    int i = 0;
+    int breakpoint = 0;
 
 }
 

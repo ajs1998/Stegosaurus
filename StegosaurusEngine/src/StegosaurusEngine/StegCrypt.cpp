@@ -2,17 +2,17 @@
 #include "StegCrypt.h"
 
 #include "aes.hpp"
-#include "aes.hpp"
-
-#include <ctime>
 
 namespace Steg {
 
     // These methods will handle the IV in the background
     std::vector<byte> StegCrypt::Encrypt(const std::vector<byte>& key, const std::vector<byte> data) {
 
+        // Create a random number generator with seed 0 for the IV
+        RNG rng(0);
+
         // IV is BLOCK_SIZE bytes long
-        std::vector<byte> iv = GetIV();
+        std::vector<byte> iv = GetIV(rng);
 
         // TODO Use a KDF instead (PBKDF2)
         std::vector<byte> paddedKey = AddPadding(key);
@@ -58,19 +58,21 @@ namespace Steg {
 
     }
 
-    std::vector<byte> StegCrypt::GetIV() {
+    std::vector<byte> StegCrypt::GetIV(RNG& rng) {
         std::vector<byte> iv(IV_LENGTH);
-        std::time_t sec = time(NULL);
+        uint64_t rand64 = rng.Next();
+        rand64 <<= 32;
+        rand64 |= rng.Next();
         int k = 0;
         for (int i = 0; i < 2; i++) {
-            iv[k++] = ((sec >> 56) & 0xFF);
-            iv[k++] = ((sec >> 40) & 0xFF);
-            iv[k++] = ((sec >> 32) & 0xFF);
-            iv[k++] = ((sec >> 48) & 0xFF);
-            iv[k++] = ((sec >> 24) & 0xFF);
-            iv[k++] = ((sec >> 16) & 0xFF);
-            iv[k++] = ((sec >> 8) & 0xFF);
-            iv[k++] = (sec & 0xFF);
+            iv[k++] = ((rand64 >> 56) & 0xFF);
+            iv[k++] = ((rand64 >> 40) & 0xFF);
+            iv[k++] = ((rand64 >> 32) & 0xFF);
+            iv[k++] = ((rand64 >> 48) & 0xFF);
+            iv[k++] = ((rand64 >> 24) & 0xFF);
+            iv[k++] = ((rand64 >> 16) & 0xFF);
+            iv[k++] = ((rand64 >> 8) & 0xFF);
+            iv[k++] = (rand64 & 0xFF);
         }
         return iv;
     }
