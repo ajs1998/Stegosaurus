@@ -2,7 +2,7 @@
 
 #include <StegosaurusEngine/Core.h>
 
-#include "RNG.h"
+#include "../RNG.h"
 
 #include <string>
 #include <vector>
@@ -24,6 +24,8 @@ namespace Steg {
         static constexpr uint32_t IV_LENGTH = BLOCK_SIZE;
 
         static std::vector<byte> GetIV(RNG& rng);
+
+        static std::vector<byte> DeriveKey(const std::vector<byte>& key, RNG& rng);
 
         static std::vector<byte> AddPadding(const std::vector<byte> data);
 

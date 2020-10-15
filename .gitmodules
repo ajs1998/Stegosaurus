@@ -4,3 +4,6 @@
 [submodule "tiny-AES"]
 	path = StegosaurusEngine/vendor/tiny-AES
 	url = https://github.com/kokke/tiny-AES-c
+[submodule "StegosaurusEngine/vendor/argon2"]
+	path = StegosaurusEngine/vendor/argon2
+	url = https://github.com/winlibs/argon2

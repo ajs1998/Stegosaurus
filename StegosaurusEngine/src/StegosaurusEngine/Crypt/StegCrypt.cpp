@@ -2,26 +2,27 @@
 #include "StegCrypt.h"
 
 #include "aes.hpp"
+#include "include/argon2.h"
 
 namespace Steg {
 
     // These methods will handle the IV in the background
-    std::vector<byte> StegCrypt::Encrypt(const std::vector<byte>& key, const std::vector<byte> data) {
+    std::vector<byte> StegCrypt::Encrypt(const std::vector<byte>& pass, const std::vector<byte> data) {
 
         // Create a random number generator with seed 0 for the IV
         RNG rng(0);
 
+        // TODO Use a KDF instead (PBKDF2)
+        std::vector<byte> key = DeriveKey(pass, rng);
+
         // IV is BLOCK_SIZE bytes long
         std::vector<byte> iv = GetIV(rng);
-
-        // TODO Use a KDF instead (PBKDF2)
-        std::vector<byte> paddedKey = AddPadding(key);
 
         // Data is padded to nearest 16 bytes
         std::vector<byte> dataBuffer = AddPadding(data);
 
         byte* ivBytes = &iv[0];
-        byte* keyBytes = &paddedKey[0];
+        byte* keyBytes = &key[0];
         byte* dataBytes = &dataBuffer[0];
 
         AES_ctx context;
@@ -35,19 +36,22 @@ namespace Steg {
 
     }
 
-    std::vector<byte> StegCrypt::Decrypt(const std::vector<byte>& key, const std::vector<byte> data) {
+    std::vector<byte> StegCrypt::Decrypt(const std::vector<byte>& pass, const std::vector<byte> data) {
+
+        // Create a random number generator with seed 0 for the IV
+        RNG rng(0);
+
+        // TODO Use a KDF instead (PBKDF2)
+        std::vector<byte> key = DeriveKey(pass, rng);
 
         // IV is BLOCK_SIZE bytes long
         std::vector<byte> iv(data.begin(), data.begin() + BLOCK_SIZE);
-
-        // TODO Use a KDF instead (PBKDF2)
-        std::vector<byte> paddedKey = AddPadding(key);
 
         // Clip off the IV from the front
         std::vector<byte> dataBuffer(data.begin() + BLOCK_SIZE, data.end());
 
         byte* ivBytes = &iv[0];
-        byte* keyBytes = &paddedKey[0];
+        byte* keyBytes = &key[0];
         byte* dataBytes = &dataBuffer[0];
 
         AES_ctx context;
@@ -75,6 +79,29 @@ namespace Steg {
             iv[k++] = (rand64 & 0xFF);
         }
         return iv;
+    }
+
+    std::vector<byte> StegCrypt::DeriveKey(const std::vector<byte>& pass, RNG& rng) {
+
+        // Generate a 16 byte (128 bit) cryptographic salt
+        constexpr uint32_t saltSize = BLOCK_SIZE;
+        byte saltBytes[saltSize];
+        for (int i = 0; i < BLOCK_SIZE; i++) {
+            saltBytes[i] = rng.Next() & 0xFF;
+        }
+
+        // Array to hold the resulting key bytes
+        constexpr uint32_t keySize = BLOCK_SIZE;
+        byte keyBytes[keySize];
+
+        // Derive key using Argon2
+        argon2i_hash_raw(2, 1 << 8, 1, &pass[0], pass.size(), saltBytes, saltSize, keyBytes, keySize);
+
+        // Convert the key bytes array to a vector
+        std::vector<byte> key(keyBytes, keyBytes + BLOCK_SIZE);
+
+        return key;
+
     }
 
     // PKCS7 Padding

@@ -3,6 +3,7 @@
 !/StegosaurusApplication
 !/StegosaurusEngine
 !premake5.lua
+!Proposal.txt
 *.vcxproj
 *.filters
 *.user

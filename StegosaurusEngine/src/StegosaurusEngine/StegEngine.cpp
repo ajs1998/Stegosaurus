@@ -2,7 +2,7 @@
 
 #include "StegEngine.h"
 
-#include "StegCrypt.h"
+#include "Crypt/StegCrypt.h"
 #include <StegosaurusEngine\Image\RGBImage.h>
 
 namespace Steg {

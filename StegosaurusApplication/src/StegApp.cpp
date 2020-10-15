@@ -5,7 +5,7 @@
 #include "StegosaurusEngine/Image/Image.h"
 #include "StegosaurusEngine/Image/RGBImage.h"
 #include "StegosaurusEngine/Image/GrayImage.h"
-#include "StegosaurusEngine/StegCrypt.h"
+#include "StegosaurusEngine/Crypt/StegCrypt.h"
 
 #include <iostream>
 
