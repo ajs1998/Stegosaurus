@@ -12,8 +12,8 @@
 StegApp::StegApp() {
 
     Steg::Image image("C:/Users/Alex/Desktop/In.png");
-    std::vector<byte> key({ 2, 3, 4, 5 });
-    std::vector<byte> data(20, (byte)0); // 228 = 11100100
+    std::vector<byte> key({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
+    std::vector<byte> data(1000, (byte)0xFF);
 
     Steg::EncoderSettings settings;
     settings.DataDepth = 2;
