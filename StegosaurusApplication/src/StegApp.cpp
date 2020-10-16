@@ -12,16 +12,19 @@
 StegApp::StegApp() {
 
     Steg::Image image("C:/Users/Alex/Desktop/In.png");
-    std::vector<byte> key({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
-    std::vector<byte> data(1000, (byte)0xFF);
+    std::vector<byte> key({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+    std::vector<byte> data(3743, (byte)0xFF);
 
     Steg::EncoderSettings settings;
-    settings.DataDepth = 2;
+    settings.DataDepth = 1;
     settings.EncodeInAlpha = false;
-    settings.EncryptPayload = true;
+    settings.EncryptPayload = false;
     settings.EncryptionKey = key;
 
-    Steg::StegEngine::Encode(image, data, settings);
+    if (!Steg::StegEngine::Encode(image, data, settings)) {
+        std::cerr << "Could not encode image" << std::endl;
+        return;
+    }
     image.SaveImage("C:/Users/Alex/Desktop/Out.png");
 
     auto decodedBytes = Steg::StegEngine::Decode(image, key);

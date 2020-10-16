@@ -7,7 +7,7 @@
 
 namespace Steg {
 
-    void StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
+    bool StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
 
         // Encrypt the payload if necessary
         std::vector<byte> payload;
@@ -43,7 +43,7 @@ namespace Steg {
         // Add headerByteCount to header
         // This value is 6 right now, but this will be different for variable header sizes
         // Note: This number includes this byte
-        header.push_back(byte(6));
+        header.push_back(byte(HEADER_SIZE));
 
         // Add dataByteCount to header
         header.push_back((byte)(payloadByteCount >> 24 & 0xFF));
@@ -55,13 +55,10 @@ namespace Steg {
         byte settingsByte = settings.ToByte();
         header.push_back(settingsByte);
 
-        // TODO Check size constraints in a separate method
-        // Check if data and its depth will fit in the image
-        // The "+ 1" accounts for the byte that represents the seed for the RNG
-        if (8 / settings.DataDepth * (payloadByteCount + header.size()) + 1 > bytesPerPixel * pixelCount) {
-            // Not enough available space in the image for the data and its depth
+        // Check size constraints in a separate method
+        if (!CanEncode(image, payloadByteCount, settings)) {
             // TODO Throw a fit
-            return;
+            return false;
         }
 
         // Create an index vector that holds all possible indices for data to be hidden in
@@ -136,6 +133,8 @@ namespace Steg {
                 image.SetByte(byteIndex, part);
             }
         }
+
+        return true;
 
     }
 
@@ -250,7 +249,7 @@ namespace Steg {
 
                 // Extract the data from the image
                 byte shiftAmount = (8 - settings.DataDepth) - (partIndex * settings.DataDepth);
-                datum |= (image.GetByte(byteIndex) & partMask) << shiftAmount ;
+                datum |= (image.GetByte(byteIndex) & partMask) << shiftAmount;
             }
 
             payload.push_back(datum);
@@ -314,6 +313,52 @@ namespace Steg {
             std::iter_swap(indices.begin() + i, indices.begin() + j);
         }
         return indices;
+    }
+
+    bool StegEngine::CanEncode(const Image& image, uint32_t payloadSize, const EncoderSettings& settings) {
+        uint32_t unencryptedSize = HEADER_SIZE + payloadSize;
+
+        // Calculate the total size of the payload (including header and extra data for encryption iv/padding/etc)
+        uint32_t totalSize;
+        if (settings.EncryptPayload) {
+            // TODO
+            totalSize = -1;
+        }
+        else {
+            totalSize = unencryptedSize;
+        }
+
+        // Calculate the total available bytes
+        uint32_t availableSize;
+        if (settings.EncodeInAlpha) {
+            availableSize = image.GetPixelWidth() * image.GetWidth() * image.GetHeight();
+        }
+        else {
+            uint32_t bytesPerChannel = image.GetBitDepth() / 8;
+            availableSize = (image.GetPixelWidth() - bytesPerChannel) * image.GetWidth() * image.GetHeight();
+        }
+
+        // Subtract one byte from the available size for the seed (first byte of the image is unavailable)
+        availableSize--;
+
+        // Check if there are not enough bytes in the image to hold the payload
+        // This should catch most cases where data cannot fit in the image
+        if (totalSize > availableSize) {
+            return false;
+        }
+
+        /* Now we check other constraints */
+
+        uint32_t totalParts = totalSize * 8 / settings.DataDepth;
+        uint32_t availableParts = availableSize;
+
+        if (totalParts > availableParts) {
+            return false;
+        }
+
+        // The payload can be encoded into the image with the specified settings
+        return true;
+
     }
 
 }

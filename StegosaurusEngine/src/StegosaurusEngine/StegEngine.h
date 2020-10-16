@@ -95,17 +95,21 @@ namespace Steg {
 
     public:
 
-        static void Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings);
+        static bool Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings);
 
         static std::vector<byte> Decode(const Image& image, const std::vector<byte> key);
 
     private:
+
+        static constexpr uint32_t HEADER_SIZE = 6;
 
         static uint16_t GetPixelMask(uint32_t imageBitDepth, uint32_t dataBitDepth);
 
         static byte GetPartMask(uint32_t imageBitDepth, uint32_t dataBitDepth);
 
         static std::vector<uint32_t> GenerateIndices(uint32_t seed, RNG& rng);
+
+        static bool CanEncode(const Image& image, uint32_t payloadSize, const EncoderSettings& settings);
 
     };
 
