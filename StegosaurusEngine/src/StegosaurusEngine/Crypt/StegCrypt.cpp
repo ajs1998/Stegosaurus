@@ -13,7 +13,7 @@ namespace Steg {
         RNG rng(0);
 
         // TODO Use a KDF instead (PBKDF2)
-        std::vector<byte> key = DeriveKey(pass, rng);
+        std::vector<byte> key = DeriveKey(pass, BLOCK_LENGTH, rng);
 
         // IV is BLOCK_SIZE bytes long
         std::vector<byte> iv = GetIV(rng);
@@ -42,13 +42,13 @@ namespace Steg {
         RNG rng(0);
 
         // TODO Use a KDF instead (PBKDF2)
-        std::vector<byte> key = DeriveKey(pass, rng);
+        std::vector<byte> key = DeriveKey(pass, BLOCK_LENGTH, rng);
 
         // IV is BLOCK_SIZE bytes long
-        std::vector<byte> iv(data.begin(), data.begin() + BLOCK_SIZE);
+        std::vector<byte> iv(data.begin(), data.begin() + BLOCK_LENGTH);
 
         // Clip off the IV from the front
-        std::vector<byte> dataBuffer(data.begin() + BLOCK_SIZE, data.end());
+        std::vector<byte> dataBuffer(data.begin() + BLOCK_LENGTH, data.end());
 
         byte* ivBytes = &iv[0];
         byte* keyBytes = &key[0];
@@ -81,24 +81,22 @@ namespace Steg {
         return iv;
     }
 
-    std::vector<byte> StegCrypt::DeriveKey(const std::vector<byte>& pass, RNG& rng) {
+    std::vector<byte> StegCrypt::DeriveKey(const std::vector<byte>& pass, uint32_t keySize, RNG& rng) {
 
         // Generate a 16 byte (128 bit) cryptographic salt
-        constexpr uint32_t saltSize = BLOCK_SIZE;
+        constexpr uint32_t saltSize = SALT_LENGTH;
         byte saltBytes[saltSize];
-        for (int i = 0; i < BLOCK_SIZE; i++) {
+        for (int i = 0; i < SALT_LENGTH; i++) {
             saltBytes[i] = rng.Next() & 0xFF;
         }
 
         // Array to hold the resulting key bytes
-        constexpr uint32_t keySize = BLOCK_SIZE;
-        byte keyBytes[keySize];
+        std::vector<byte> key(keySize);
 
         // Derive key using Argon2
-        argon2i_hash_raw(2, 1 << 8, 1, &pass[0], pass.size(), saltBytes, saltSize, keyBytes, keySize);
+        argon2i_hash_raw(2, 1 << 8, 1, &pass[0], pass.size(), saltBytes, saltSize, &key[0], keySize);
 
         // Convert the key bytes array to a vector
-        std::vector<byte> key(keyBytes, keyBytes + BLOCK_SIZE);
 
         return key;
 
@@ -107,7 +105,7 @@ namespace Steg {
     // PKCS7 Padding
     std::vector<byte> StegCrypt::AddPadding(const std::vector<byte> data) {
         std::vector<byte> paddedData(data);
-        byte padAmount = BLOCK_SIZE - (data.size() % BLOCK_SIZE);
+        byte padAmount = BLOCK_LENGTH - (data.size() % BLOCK_LENGTH);
         for (byte i = 0; i < padAmount; i++) {
             paddedData.push_back(padAmount);
         }
