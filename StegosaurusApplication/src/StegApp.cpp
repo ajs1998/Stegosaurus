@@ -13,12 +13,12 @@ StegApp::StegApp() {
 
     Steg::Image image("C:/Users/Alex/Desktop/In.png");
     std::vector<byte> key({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
-    std::vector<byte> data(3743, (byte)0xFF);
-
+    std::vector<byte> data(111, (byte)0xFF);
+    
     Steg::EncoderSettings settings;
     settings.DataDepth = 1;
     settings.EncodeInAlpha = false;
-    settings.EncryptPayload = false;
+    settings.EncryptPayload = true;
     settings.EncryptionKey = key;
 
     if (!Steg::StegEngine::Encode(image, data, settings)) {

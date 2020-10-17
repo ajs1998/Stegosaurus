@@ -3,7 +3,7 @@
 #include "StegEngine.h"
 
 #include "Crypt/StegCrypt.h"
-#include <StegosaurusEngine\Image\RGBImage.h>
+#include <StegosaurusEngine/Image/RGBImage.h>
 
 namespace Steg {
 
@@ -18,6 +18,15 @@ namespace Steg {
             payload = data;
         }
 
+        // Number of bytes in the data payload
+        uint32_t payloadByteCount = payload.size();
+
+        // Check size constraints in a separate method
+        if (!CanEncode(image, payloadByteCount, settings)) {
+            // TODO Throw a fit
+            return false;
+        }
+
         // Width of the image
         uint32_t width = image.GetWidth();
 
@@ -29,9 +38,6 @@ namespace Steg {
 
         // Number of pixels in the image
         uint32_t pixelCount = width * height;
-
-        // Number of bytes in the data payload
-        uint32_t payloadByteCount = payload.size();
 
         // Skip over the alpha channel while encoding
         bool skipAlpha = !(image.HasAlpha() && settings.EncodeInAlpha);
@@ -54,12 +60,6 @@ namespace Steg {
         // Add encoder settings to header
         byte settingsByte = settings.ToByte();
         header.push_back(settingsByte);
-
-        // Check size constraints in a separate method
-        if (!CanEncode(image, payloadByteCount, settings)) {
-            // TODO Throw a fit
-            return false;
-        }
 
         // Create an index vector that holds all possible indices for data to be hidden in
         // An index corresponds to a byte within a pixel and the seed is the first byte of the first channel of the first pixel
@@ -316,42 +316,23 @@ namespace Steg {
     }
 
     bool StegEngine::CanEncode(const Image& image, uint32_t payloadSize, const EncoderSettings& settings) {
-        uint32_t unencryptedSize = HEADER_SIZE + payloadSize;
-
-        // Calculate the total size of the payload (including header and extra data for encryption iv/padding/etc)
-        uint32_t totalSize;
-        if (settings.EncryptPayload) {
-            // TODO
-            totalSize = -1;
-        }
-        else {
-            totalSize = unencryptedSize;
-        }
+        uint32_t totalSize = HEADER_SIZE + payloadSize;
 
         // Calculate the total available bytes
-        uint32_t availableSize;
+        uint32_t availableParts;
         if (settings.EncodeInAlpha) {
-            availableSize = image.GetPixelWidth() * image.GetWidth() * image.GetHeight();
+            availableParts = image.GetPixelWidth() * image.GetWidth() * image.GetHeight();
         }
         else {
             uint32_t bytesPerChannel = image.GetBitDepth() / 8;
-            availableSize = (image.GetPixelWidth() - bytesPerChannel) * image.GetWidth() * image.GetHeight();
+            availableParts = (image.GetPixelWidth() - bytesPerChannel) * image.GetWidth() * image.GetHeight();
         }
 
         // Subtract one byte from the available size for the seed (first byte of the image is unavailable)
-        availableSize--;
+        availableParts--;
 
-        // Check if there are not enough bytes in the image to hold the payload
-        // This should catch most cases where data cannot fit in the image
-        if (totalSize > availableSize) {
-            return false;
-        }
-
-        /* Now we check other constraints */
-
+        // Check if the payload can be encoded in the image with the given settings
         uint32_t totalParts = totalSize * 8 / settings.DataDepth;
-        uint32_t availableParts = availableSize;
-
         if (totalParts > availableParts) {
             return false;
         }
