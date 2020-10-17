@@ -13,25 +13,27 @@ namespace Steg {
 
     public:
 
-        static constexpr uint32_t BLOCK_LENGTH = 16;
+        static enum class Algorithm {
+            ALGO_AES128,
+            ALGO_AES192,
+            ALGO_AES256
+        };
 
-        static constexpr uint32_t IV_LENGTH = BLOCK_LENGTH;
+        static std::vector<byte> Encrypt(const std::vector<byte>& key, const std::vector<byte> inputBytes, Algorithm algo);
 
-        static constexpr uint32_t SALT_LENGTH = BLOCK_LENGTH;
-
-        static std::vector<byte> Encrypt(const std::vector<byte>& key, const std::vector<byte> inputBytes);
-
-        static std::vector<byte> Decrypt(const std::vector<byte>& key, const std::vector<byte> inputBytes);
+        static std::vector<byte> Decrypt(const std::vector<byte>& key, const std::vector<byte> inputBytes, Algorithm algo);
 
     private:
 
-        static std::vector<byte> GetIV(RNG& rng);
+        static std::vector<byte> GetIV(RNG& rng, uint32_t ivLength);
 
         static std::vector<byte> DeriveKey(const std::vector<byte>& key, uint32_t keySize, RNG& rng);
 
-        static std::vector<byte> AddPadding(const std::vector<byte> data);
+        static std::vector<byte> AddPadding(const std::vector<byte> data, uint32_t blockLength);
 
         static std::vector<byte> RemovePadding(const std::vector<byte> data);
+
+        static uint32_t GetBlockLength(Algorithm algo);
 
     };
 

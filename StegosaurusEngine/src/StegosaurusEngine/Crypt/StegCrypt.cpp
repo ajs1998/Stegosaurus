@@ -7,19 +7,22 @@
 namespace Steg {
 
     // These methods will handle the IV in the background
-    std::vector<byte> StegCrypt::Encrypt(const std::vector<byte>& pass, const std::vector<byte> data) {
+    std::vector<byte> StegCrypt::Encrypt(const std::vector<byte>& pass, const std::vector<byte> data, Algorithm algo) {
 
         // Create a random number generator with seed 0 for the IV
         RNG rng(0);
 
+        // Get the block length of this algorithm
+        uint32_t blockLength = GetBlockLength(algo);
+
         // TODO Use a KDF instead (PBKDF2)
-        std::vector<byte> key = DeriveKey(pass, BLOCK_LENGTH, rng);
+        std::vector<byte> key = DeriveKey(pass, blockLength, rng);
 
         // IV is BLOCK_SIZE bytes long
-        std::vector<byte> iv = GetIV(rng);
+        std::vector<byte> iv = GetIV(rng, blockLength);
 
         // Data is padded to nearest 16 bytes
-        std::vector<byte> dataBuffer = AddPadding(data);
+        std::vector<byte> dataBuffer = AddPadding(data, blockLength);
 
         byte* ivBytes = &iv[0];
         byte* keyBytes = &key[0];
@@ -36,19 +39,22 @@ namespace Steg {
 
     }
 
-    std::vector<byte> StegCrypt::Decrypt(const std::vector<byte>& pass, const std::vector<byte> data) {
+    std::vector<byte> StegCrypt::Decrypt(const std::vector<byte>& pass, const std::vector<byte> data, Algorithm algo) {
 
         // Create a random number generator with seed 0 for the IV
         RNG rng(0);
 
+        // Get the block length of this algorithm
+        uint32_t blockLength = GetBlockLength(algo);
+
         // TODO Use a KDF instead (PBKDF2)
-        std::vector<byte> key = DeriveKey(pass, BLOCK_LENGTH, rng);
+        std::vector<byte> key = DeriveKey(pass, blockLength, rng);
 
         // IV is BLOCK_SIZE bytes long
-        std::vector<byte> iv(data.begin(), data.begin() + BLOCK_LENGTH);
+        std::vector<byte> iv(data.begin(), data.begin() + blockLength);
 
         // Clip off the IV from the front
-        std::vector<byte> dataBuffer(data.begin() + BLOCK_LENGTH, data.end());
+        std::vector<byte> dataBuffer(data.begin() + blockLength, data.end());
 
         byte* ivBytes = &iv[0];
         byte* keyBytes = &key[0];
@@ -62,8 +68,8 @@ namespace Steg {
 
     }
 
-    std::vector<byte> StegCrypt::GetIV(RNG& rng) {
-        std::vector<byte> iv(IV_LENGTH);
+    std::vector<byte> StegCrypt::GetIV(RNG& rng, uint32_t ivLength) {
+        std::vector<byte> iv(ivLength);
         uint64_t rand64 = rng.Next();
         rand64 <<= 32;
         rand64 |= rng.Next();
@@ -83,35 +89,33 @@ namespace Steg {
 
     std::vector<byte> StegCrypt::DeriveKey(const std::vector<byte>& pass, uint32_t keySize, RNG& rng) {
 
-        // Generate a 16 byte (128 bit) cryptographic salt
-        constexpr uint32_t saltSize = SALT_LENGTH;
-        byte saltBytes[saltSize];
-        for (int i = 0; i < SALT_LENGTH; i++) {
-            saltBytes[i] = rng.Next() & 0xFF;
+        // Generate a cryptographic salt
+        std::vector<byte> salt(keySize);
+        for (uint32_t i = 0; i < keySize; i++) {
+            salt[i] = rng.Next() & 0xFF;
         }
 
         // Array to hold the resulting key bytes
         std::vector<byte> key(keySize);
 
         // Derive key using Argon2
-        argon2i_hash_raw(2, 1 << 8, 1, &pass[0], pass.size(), saltBytes, saltSize, &key[0], keySize);
-
-        // Convert the key bytes array to a vector
+        argon2i_hash_raw(2, 1 << 8, 1, &pass[0], pass.size(), &salt[0], salt.size(), &key[0], keySize);
 
         return key;
 
     }
 
     // PKCS7 Padding
-    std::vector<byte> StegCrypt::AddPadding(const std::vector<byte> data) {
+    std::vector<byte> StegCrypt::AddPadding(const std::vector<byte> data, uint32_t blockLength) {
         std::vector<byte> paddedData(data);
-        byte padAmount = BLOCK_LENGTH - (data.size() % BLOCK_LENGTH);
+        uint32_t padAmount = blockLength - (data.size() % blockLength);
         for (byte i = 0; i < padAmount; i++) {
             paddedData.push_back(padAmount);
         }
         return paddedData;
     }
 
+    // PKCS7 Padding
     std::vector<byte> StegCrypt::RemovePadding(const std::vector<byte> data) {
         std::vector<byte> unpaddedData(data);
         uint32_t padAmount = data[data.size() - 1];
@@ -119,6 +123,20 @@ namespace Steg {
             unpaddedData.pop_back();
         }
         return unpaddedData;
+    }
+
+    uint32_t StegCrypt::GetBlockLength(Algorithm algo) {
+        switch (algo) {
+        case Algorithm::ALGO_AES128:
+            return 16;
+        case Algorithm::ALGO_AES192:
+            return 24;
+        case Algorithm::ALGO_AES256:
+            return 32;
+        default:
+            // TODO Throw a fit
+            return 0;
+        }
     }
 
 }

@@ -3,14 +3,10 @@
 
 namespace Steg {
 
-    Application::Application() {
-    }
+    Application::Application() {}
 
-    Application::~Application() {
-    }
+    Application::~Application() {}
 
-    void Application::Run() {
-
-    }
+    void Application::Run() {}
 
 }
