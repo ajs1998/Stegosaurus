@@ -320,7 +320,7 @@ namespace Steg {
 
         // Calculate the total available bytes
         uint32_t availableParts;
-        if (settings.EncodeInAlpha) {
+        if (settings.EncodeInAlpha || !image.HasAlpha()) {
             availableParts = image.GetPixelWidth() * image.GetWidth() * image.GetHeight();
         }
         else {
