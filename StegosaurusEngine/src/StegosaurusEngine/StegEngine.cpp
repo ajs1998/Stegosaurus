@@ -11,8 +11,8 @@ namespace Steg {
 
         // Encrypt the payload if necessary
         std::vector<byte> payload;
-        if (settings.EncryptPayload) {
-            payload = StegCrypt::Encrypt(settings.EncryptionKey, data);
+        if (settings.EncryptionSettings.EncryptPayload) {
+            payload = StegCrypt::Encrypt(settings.EncryptionSettings.EncryptionPassword, data, settings.EncryptionSettings.Algo);
         }
         else {
             payload = data;
@@ -220,7 +220,7 @@ namespace Steg {
         // Reconstruct the EncoderSettings
         byte settingsByte = header[4];
         EncoderSettings settings = EncoderSettings::FromByte(settingsByte);
-        settings.EncryptionKey = key;
+        settings.EncryptionSettings.EncryptionPassword = key;
 
         // Skip over the alpha channel while encoding
         bool skipAlpha = !(image.HasAlpha() && settings.EncodeInAlpha);
@@ -257,8 +257,8 @@ namespace Steg {
 
         // Decrypt the payload if necessary
         std::vector<byte> data;
-        if (settings.EncryptPayload) {
-            data = StegCrypt::Decrypt(settings.EncryptionKey, payload);
+        if (settings.EncryptionSettings.EncryptPayload) {
+            data = StegCrypt::Decrypt(settings.EncryptionSettings.EncryptionPassword, payload, settings.EncryptionSettings.Algo);
         }
         else {
             data = payload;

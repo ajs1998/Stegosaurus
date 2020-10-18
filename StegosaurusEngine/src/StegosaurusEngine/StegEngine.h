@@ -2,10 +2,26 @@
 
 #include <StegosaurusEngine/Core.h>
 
+#include "Crypt/StegCrypt.h"
 #include "RNG.h"
 #include "Image/Image.h"
 
 namespace Steg {
+
+    struct EncryptionSettings {
+
+        // TRUE: Encrypt data before encoding
+        // FALSE: Leave payload alone
+        // Note: Encrypting may increase the payload size slightly
+        bool EncryptPayload = false;
+
+        // The password for encryption (this will later derive a key)
+        std::vector<byte> EncryptionPassword;
+
+        // Larger block sizes means encryption is more secure, but will occupy more space
+        StegCrypt::Algorithm Algo = StegCrypt::Algorithm::ALGO_AES128;
+
+    };
 
     struct EncoderSettings {
 
@@ -21,41 +37,53 @@ namespace Steg {
 
         // TODO Normalize image option
 
-        // TRUE: Encrypt data before encoding
-        // FALSE: Leave payload alone
-        // Note: Encrypting may increase the payload size slightly
-        bool EncryptPayload = false;
-        std::vector<byte> EncryptionKey;
+        EncryptionSettings EncryptionSettings;
 
         byte ToByte() const {
 
             // DataDepth has 4 possible values so it will occupy 2 bits
             byte result = 0;
             if (DataDepth == 1) {
-                result |= 0b00;
+                result |= 0b00'000000;
             }
             else if (DataDepth == 2) {
-                result |= 0b01;
+                result |= 0b01'000000;
             }
             else if (DataDepth == 4) {
-                result |= 0b10;
+                result |= 0b10'000000;
             }
             else if (DataDepth == 8) {
-                result |= 0b11;
+                result |= 0b11'000000;
             }
             else {
                 // TODO Throw a fit probably
                 return 0;
             }
-            result <<= 1;
 
             // Each bool has 2 possible values so they will occupy 1 bit each
-            result |= (byte)EncodeInAlpha;
-            result <<= 1;
+            if (EncodeInAlpha) {
+                result |= 0b00'1'00000;
+            }
 
-            result |= (byte)EncryptPayload;
+            if (EncryptionSettings.EncryptPayload) {
+                result |= 0b000'1'0000;
+                switch (EncryptionSettings.Algo) {
+                case StegCrypt::Algorithm::ALGO_AES128:
+                    result |= 0b0000'00'00;
+                    break;
+                case StegCrypt::Algorithm::ALGO_AES192:
+                    result |= 0b0000'01'00;
+                    break;
+                case StegCrypt::Algorithm::ALGO_AES256:
+                    result |= 0b0000'10'00;
+                    break;
+                }
+            }
+            else {
+                result |= 0b000'0'0000;
+            }
 
-            // TODO Add more bool flags here as needed
+            // TODO Add more bool flags here as needed (2 bits left)
 
             return result;
 
@@ -65,13 +93,7 @@ namespace Steg {
 
             EncoderSettings settings;
 
-            settings.EncryptPayload = settingsByte & 0x01;
-            settingsByte >>= 1;
-
-            settings.EncodeInAlpha = settingsByte & 0x01;
-            settingsByte >>= 1;
-
-            byte depth = settingsByte & 0x11;
+            byte depth = settingsByte & 0b11'000000;
             if (depth == 0x00) {
                 settings.DataDepth = 1;
             }
@@ -84,6 +106,26 @@ namespace Steg {
             else if (depth == 0x11) {
                 settings.DataDepth = 8;
             }
+
+            settings.EncodeInAlpha = settingsByte & 0b00'1'00000;
+
+            settings.EncryptionSettings.EncryptPayload = settingsByte & 0b000'1'0000;
+
+            if (settings.EncryptionSettings.EncryptPayload) {
+                switch ((settingsByte & 0b0000'11'00) >> 2) {
+                case 0b00:
+                    settings.EncryptionSettings.Algo = StegCrypt::Algorithm::ALGO_AES128;
+                    break;
+                case 0b01:
+                    settings.EncryptionSettings.Algo = StegCrypt::Algorithm::ALGO_AES192;
+                    break;
+                case 0b10:
+                    settings.EncryptionSettings.Algo = StegCrypt::Algorithm::ALGO_AES256;
+                    break;
+                }
+            }
+
+            // TODO Add more bool flags here as needed (2 bits left)
 
             return settings;
 

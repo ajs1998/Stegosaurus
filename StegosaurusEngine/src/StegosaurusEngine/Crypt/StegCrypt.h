@@ -13,7 +13,7 @@ namespace Steg {
 
     public:
 
-        static enum class Algorithm {
+        enum class Algorithm {
             ALGO_AES128,
             ALGO_AES192,
             ALGO_AES256

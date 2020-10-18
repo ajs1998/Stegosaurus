@@ -12,14 +12,15 @@
 StegApp::StegApp() {
 
     Steg::Image image("C:/Users/Alex/Desktop/In.png");
-    std::vector<byte> key({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
-    std::vector<byte> data(111, (byte)0xFF);
+    std::vector<byte> pass({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 });
+    std::vector<byte> data(50, (byte)0xFF);
     
     Steg::EncoderSettings settings;
     settings.DataDepth = 1;
     settings.EncodeInAlpha = false;
-    settings.EncryptPayload = true;
-    settings.EncryptionKey = key;
+    settings.EncryptionSettings.EncryptPayload = true;
+    settings.EncryptionSettings.EncryptionPassword = pass;
+    settings.EncryptionSettings.Algo = Steg::StegCrypt::Algorithm::ALGO_AES128;
 
     if (!Steg::StegEngine::Encode(image, data, settings)) {
         std::cerr << "Could not encode image" << std::endl;
@@ -27,7 +28,7 @@ StegApp::StegApp() {
     }
     image.SaveImage("C:/Users/Alex/Desktop/Out.png");
 
-    auto decodedBytes = Steg::StegEngine::Decode(image, key);
+    auto decodedBytes = Steg::StegEngine::Decode(image, pass);
 
     int breakpoint = 0;
 

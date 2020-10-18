@@ -21,7 +21,7 @@ namespace Steg {
         // IV is BLOCK_SIZE bytes long
         std::vector<byte> iv = GetIV(rng, blockLength);
 
-        // Data is padded to nearest 16 bytes
+        // Data is padded to nearest blockLength bytes
         std::vector<byte> dataBuffer = AddPadding(data, blockLength);
 
         byte* ivBytes = &iv[0];
