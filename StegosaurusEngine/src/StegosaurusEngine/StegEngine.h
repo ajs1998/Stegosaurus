@@ -37,7 +37,7 @@ namespace Steg {
 
         // TODO Normalize image option
 
-        EncryptionSettings EncryptionSettings;
+        EncryptionSettings Encryption;
 
         byte ToByte() const {
 
@@ -65,9 +65,9 @@ namespace Steg {
                 result |= 0b00'1'00000;
             }
 
-            if (EncryptionSettings.EncryptPayload) {
+            if (Encryption.EncryptPayload) {
                 result |= 0b000'1'0000;
-                switch (EncryptionSettings.Algo) {
+                switch (Encryption.Algo) {
                 case StegCrypt::Algorithm::ALGO_AES128:
                     result |= 0b0000'00'00;
                     break;
@@ -109,18 +109,18 @@ namespace Steg {
 
             settings.EncodeInAlpha = settingsByte & 0b00'1'00000;
 
-            settings.EncryptionSettings.EncryptPayload = settingsByte & 0b000'1'0000;
+            settings.Encryption.EncryptPayload = settingsByte & 0b000'1'0000;
 
-            if (settings.EncryptionSettings.EncryptPayload) {
+            if (settings.Encryption.EncryptPayload) {
                 switch ((settingsByte & 0b0000'11'00) >> 2) {
                 case 0b00:
-                    settings.EncryptionSettings.Algo = StegCrypt::Algorithm::ALGO_AES128;
+                    settings.Encryption.Algo = StegCrypt::Algorithm::ALGO_AES128;
                     break;
                 case 0b01:
-                    settings.EncryptionSettings.Algo = StegCrypt::Algorithm::ALGO_AES192;
+                    settings.Encryption.Algo = StegCrypt::Algorithm::ALGO_AES192;
                     break;
                 case 0b10:
-                    settings.EncryptionSettings.Algo = StegCrypt::Algorithm::ALGO_AES256;
+                    settings.Encryption.Algo = StegCrypt::Algorithm::ALGO_AES256;
                     break;
                 }
             }

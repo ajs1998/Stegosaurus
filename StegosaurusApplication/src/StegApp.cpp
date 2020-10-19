@@ -18,9 +18,9 @@ StegApp::StegApp() {
     Steg::EncoderSettings settings;
     settings.DataDepth = 1;
     settings.EncodeInAlpha = false;
-    settings.EncryptionSettings.EncryptPayload = true;
-    settings.EncryptionSettings.EncryptionPassword = pass;
-    settings.EncryptionSettings.Algo = Steg::StegCrypt::Algorithm::ALGO_AES256;
+    settings.Encryption.EncryptPayload = true;
+    settings.Encryption.EncryptionPassword = pass;
+    settings.Encryption.Algo = Steg::StegCrypt::Algorithm::ALGO_AES256;
 
     if (!Steg::StegEngine::Encode(image, data, settings)) {
         std::cerr << "Could not encode image" << std::endl;

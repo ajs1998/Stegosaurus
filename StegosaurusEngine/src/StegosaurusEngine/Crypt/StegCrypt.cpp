@@ -1,7 +1,7 @@
 #include "stegosaurus_pch.h"
 #include "StegCrypt.h"
 
-#include "aes.hpp"
+#include "aes.h"
 #include "include/argon2.h"
 
 namespace Steg {
