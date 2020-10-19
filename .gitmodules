@@ -1,9 +1,9 @@
 [submodule "lodepng"]
 	path = StegosaurusEngine/vendor/lodepng
 	url = https://github.com/lvandeve/lodepng
-[submodule "tiny-AES"]
-	path = StegosaurusEngine/vendor/tiny-AES
-	url = https://github.com/kokke/tiny-AES-c
 [submodule "StegosaurusEngine/vendor/argon2"]
 	path = StegosaurusEngine/vendor/argon2
 	url = https://github.com/winlibs/argon2
+[submodule "StegosaurusEngine/vendor/tinyAES"]
+	path = StegosaurusEngine/vendor/tinyAES
+	url = https://github.com/ajs8657/tinyAES

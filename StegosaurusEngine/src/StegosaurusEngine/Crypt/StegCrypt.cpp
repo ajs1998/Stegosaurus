@@ -29,8 +29,22 @@ namespace Steg {
         byte* dataBytes = &dataBuffer[0];
 
         AES_ctx context;
-        AES_init_ctx_iv(&context, keyBytes, ivBytes);
-        AES_CBC_encrypt_buffer(&context, dataBytes, dataBuffer.size());
+        AES128_init_ctx(&context, keyBytes);
+        if (algo == Algorithm::ALGO_AES128) {
+            AES128_init_ctx_iv(&context, keyBytes, ivBytes);
+            AES128_CBC_encrypt_buffer(&context, dataBytes, dataBuffer.size());
+        }
+        else if (algo == Algorithm::ALGO_AES192) {
+            AES192_init_ctx_iv(&context, keyBytes, ivBytes);
+            AES192_CBC_encrypt_buffer(&context, dataBytes, dataBuffer.size());
+        }
+        else if (algo == Algorithm::ALGO_AES256) {
+            AES256_init_ctx_iv(&context, keyBytes, ivBytes);
+            AES256_CBC_encrypt_buffer(&context, dataBytes, dataBuffer.size());
+        }
+        else {
+            // TODO Throw a fit
+        }
 
         // Prepend IV to the data buffer
         dataBuffer.insert(dataBuffer.begin(), iv.begin(), iv.end());
@@ -61,8 +75,22 @@ namespace Steg {
         byte* dataBytes = &dataBuffer[0];
 
         AES_ctx context;
-        AES_init_ctx_iv(&context, keyBytes, ivBytes);
-        AES_CBC_decrypt_buffer(&context, dataBytes, dataBuffer.size());
+        AES128_init_ctx(&context, keyBytes);
+        if (algo == Algorithm::ALGO_AES128) {
+            AES128_init_ctx_iv(&context, keyBytes, ivBytes);
+            AES128_CBC_decrypt_buffer(&context, dataBytes, dataBuffer.size());
+        }
+        else if (algo == Algorithm::ALGO_AES192) {
+            AES192_init_ctx_iv(&context, keyBytes, ivBytes);
+            AES192_CBC_decrypt_buffer(&context, dataBytes, dataBuffer.size());
+        }
+        else if (algo == Algorithm::ALGO_AES256) {
+            AES256_init_ctx_iv(&context, keyBytes, ivBytes);
+            AES256_CBC_decrypt_buffer(&context, dataBytes, dataBuffer.size());
+        }
+        else {
+            // TODO Throw a fit
+        }
 
         return RemovePadding(dataBuffer);
 

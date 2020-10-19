@@ -10,7 +10,7 @@ OutDir = "%{cfg.buildcfg}/%{cfg.system}-%{cfg.architecture}"
 
 AdditionalIncludeDirs = {}
 AdditionalIncludeDirs["lodepng"] = "StegosaurusEngine/vendor/lodepng"
-AdditionalIncludeDirs["tinyAES"] = "StegosaurusEngine/vendor/tiny-AES"
+AdditionalIncludeDirs["tinyAES"] = "StegosaurusEngine/vendor/tinyAES"
 AdditionalIncludeDirs["argon2"] = "StegosaurusEngine/vendor/argon2"
 
 project "StegosaurusEngine"
@@ -40,7 +40,7 @@ project "StegosaurusEngine"
 
     links {
         "lodepng",
-        "tiny-AES",
+        "tinyAES",
         "argon2"
     }
 
@@ -117,8 +117,8 @@ project "lodepng"
 	filter "configurations:Release"
 		optimize "On"
 
-project "tiny-AES"
-    location "StegosaurusEngine/vendor/tiny-AES"
+project "tinyAES"
+    location "StegosaurusEngine/vendor/tinyAES"
     staticruntime "On"
     kind "StaticLib"
     language "C"
@@ -140,8 +140,8 @@ project "tiny-AES"
 
     defines {
         "CBC=1",
-        "ECB=0",
-        "CTR=0"
+        "ECB=1",
+        "CTR=1"
     }
 
 	filter "configurations:Debug"
