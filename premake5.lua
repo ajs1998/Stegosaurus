@@ -12,6 +12,7 @@ AdditionalIncludeDirs = {}
 AdditionalIncludeDirs["lodepng"] = "StegosaurusEngine/vendor/lodepng"
 AdditionalIncludeDirs["tinyAES"] = "StegosaurusEngine/vendor/tinyAES"
 AdditionalIncludeDirs["argon2"] = "StegosaurusEngine/vendor/argon2"
+AdditionalIncludeDirs["argagg"] = "StegosaurusEngine/vendor/argagg"
 
 project "StegosaurusEngine"
 	location "StegosaurusEngine"
@@ -35,13 +36,15 @@ project "StegosaurusEngine"
 		"%{prj.name}/src",
         "%{AdditionalIncludeDirs.lodepng}",
         "%{AdditionalIncludeDirs.tinyAES}",
-        "%{AdditionalIncludeDirs.argon2}"
+        "%{AdditionalIncludeDirs.argon2}",
+        "%{AdditionalIncludeDirs.argagg}"
 	}
 
     links {
         "lodepng",
         "tinyAES",
-        "argon2"
+        "argon2",
+        "argagg"
     }
 
     defines {
@@ -169,6 +172,29 @@ project "argon2"
 		"StegosaurusEngine/vendor/%{prj.name}/include",
 		"StegosaurusEngine/vendor/%{prj.name}/src/**.h",
 		"StegosaurusEngine/vendor/%{prj.name}/src/**.c"
+	}
+
+	filter "configurations:Debug"
+		symbols "On"
+
+	filter "configurations:Release"
+		optimize "On"
+
+project "argagg"
+    location "StegosaurusEngine/vendor/argagg"
+    staticruntime "On"
+    kind "StaticLib"
+    language "C"
+    
+	targetdir ("bin/" .. OutDir .. "/%{prj.name}")
+	objdir ("bin-obj/" .. OutDir .. "/%{prj.name}")
+
+	files {
+		"StegosaurusEngine/vendor/%{prj.name}/include/argagg/argagg.hpp",
+    }
+    
+	includedirs {
+		"StegosaurusEngine/vendor/%{prj.name}/include/argagg",
 	}
 
 	filter "configurations:Debug"
