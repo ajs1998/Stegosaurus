@@ -7,7 +7,7 @@
 
 typedef unsigned char byte;
 
-namespace Cobalt {
+namespace Steg {
 
     template<typename T>
     using Scope = std::unique_ptr<T>;

@@ -7,6 +7,6 @@
 [submodule "StegosaurusEngine/vendor/tinyAES"]
 	path = StegosaurusEngine/vendor/tinyAES
 	url = https://github.com/ajs8657/tinyAES
-[submodule "StegosaurusEngine/vendor/argagg"]
-	path = StegosaurusEngine/vendor/argagg
-	url = https://github.com/vietjtnguyen/argagg
+[submodule "StegosaurusApplication/vendor/AnyOption"]
+	path = StegosaurusApplication/vendor/AnyOption
+	url = https://github.com/hackorama/AnyOption

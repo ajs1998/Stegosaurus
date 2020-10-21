@@ -12,7 +12,8 @@ AdditionalIncludeDirs = {}
 AdditionalIncludeDirs["lodepng"] = "StegosaurusEngine/vendor/lodepng"
 AdditionalIncludeDirs["tinyAES"] = "StegosaurusEngine/vendor/tinyAES"
 AdditionalIncludeDirs["argon2"] = "StegosaurusEngine/vendor/argon2"
-AdditionalIncludeDirs["argagg"] = "StegosaurusEngine/vendor/argagg"
+
+AdditionalIncludeDirs["AnyOption"] = "StegosaurusApplication/vendor/AnyOption"
 
 project "StegosaurusEngine"
 	location "StegosaurusEngine"
@@ -36,15 +37,13 @@ project "StegosaurusEngine"
 		"%{prj.name}/src",
         "%{AdditionalIncludeDirs.lodepng}",
         "%{AdditionalIncludeDirs.tinyAES}",
-        "%{AdditionalIncludeDirs.argon2}",
-        "%{AdditionalIncludeDirs.argagg}"
+        "%{AdditionalIncludeDirs.argon2}"
 	}
 
     links {
         "lodepng",
         "tinyAES",
-        "argon2",
-        "argagg"
+        "argon2"
     }
 
     defines {
@@ -80,12 +79,14 @@ project "StegosaurusApplication"
 
 	includedirs {
 		"%{prj.name}/src",
-		"StegosaurusEngine/src"
+        "StegosaurusEngine/src",
+        "%{AdditionalIncludeDirs.AnyOption}"
 	}
 
 	links {
-        "StegosaurusEngine"
-	}
+        "StegosaurusEngine",
+        "AnyOption"
+    }
 
 	filter "configurations:Debug"
 		defines "STEGOSAURUS_DEBUG"
@@ -109,11 +110,6 @@ project "lodepng"
 		"StegosaurusEngine/vendor/%{prj.name}/lodepng.cpp"
     }
     
-	includedirs {
-		"StegosaurusEngine/vendor/%{prj.name}/lodepng.h",
-		"StegosaurusEngine/vendor/%{prj.name}/lodepng.cpp"
-	}
-
 	filter "configurations:Debug"
 		symbols "On"
 
@@ -135,12 +131,6 @@ project "tinyAES"
 		"StegosaurusEngine/vendor/%{prj.name}/aes.c"
     }
     
-	includedirs {
-		"StegosaurusEngine/vendor/%{prj.name}/aes.h",
-		"StegosaurusEngine/vendor/%{prj.name}/aes.hpp",
-		"StegosaurusEngine/vendor/%{prj.name}/aes.c"
-	}
-
     defines {
         "CBC=1",
         "ECB=1",
@@ -169,9 +159,7 @@ project "argon2"
     }
     
 	includedirs {
-		"StegosaurusEngine/vendor/%{prj.name}/include",
-		"StegosaurusEngine/vendor/%{prj.name}/src/**.h",
-		"StegosaurusEngine/vendor/%{prj.name}/src/**.c"
+		"StegosaurusEngine/vendor/%{prj.name}/include"
 	}
 
 	filter "configurations:Debug"
@@ -180,25 +168,22 @@ project "argon2"
 	filter "configurations:Release"
 		optimize "On"
 
-project "argagg"
-    location "StegosaurusEngine/vendor/argagg"
+project "AnyOption"
+    location "StegosaurusApplication/vendor/AnyOption"
     staticruntime "On"
     kind "StaticLib"
-    language "C"
-    
-	targetdir ("bin/" .. OutDir .. "/%{prj.name}")
-	objdir ("bin-obj/" .. OutDir .. "/%{prj.name}")
+    language "C++"
 
-	files {
-		"StegosaurusEngine/vendor/%{prj.name}/include/argagg/argagg.hpp",
+    targetdir ("bin/" .. OutDir .. "/%{prj.name}")
+    objdir ("bin-obj/" .. OutDir .. "/%{prj.name}")
+
+    files {
+        "StegosaurusApplication/vendor/%{prj.name}/anyoption.h",
+        "StegosaurusApplication/vendor/%{prj.name}/anyoption.cpp"
     }
-    
-	includedirs {
-		"StegosaurusEngine/vendor/%{prj.name}/include/argagg",
-	}
 
-	filter "configurations:Debug"
-		symbols "On"
+    filter "configurations:Debug"
+        symbols "On"
 
-	filter "configurations:Release"
-		optimize "On"
+    filter "configurations:Release"
+        optimize "On"

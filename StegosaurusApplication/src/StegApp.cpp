@@ -2,12 +2,14 @@
 
 #include <StegosaurusEngine/StegEngine.h>
 
+#include <iostream>
+
 #include "StegosaurusEngine/Image/Image.h"
 #include "StegosaurusEngine/Image/RGBImage.h"
 #include "StegosaurusEngine/Image/GrayImage.h"
 #include "StegosaurusEngine/Crypt/StegCrypt.h"
 
-#include <iostream>
+#include "anyoption.h"
 
 StegApp::StegApp(int argc, char** argv) : Application(argc, argv) {
 
@@ -21,10 +23,28 @@ StegApp::~StegApp() {
 
 void StegApp::MainLoop() {
 
-    // This is temporary
-    for (int i = 1; i < argc; i++) {
-        std::cout << argv[i] << " ";
-    }
+    AnyOption opt = AnyOption();
+
+    opt.addUsage("Usage: ./steg [options] -I <input file> -D <data file> -O <output file>");
+    opt.addUsage("");
+    opt.addUsage("OPTIONS:");
+    opt.addUsage("  -h  --help                      Prints this help message");
+    opt.addUsage("  -a  --use-alpha                 Encode data in alpha channel");
+    opt.addUsage("  -d  --depth <depth>             Bit depth of hidden data");
+    opt.addUsage("  -e  --encrypt                   Encrypt data before encoding");
+    opt.addUsage("    -p  --pass <password>         Encryption password");
+    opt.addUsage("    -g  --algo <algorithm>        Encryption algorithm");
+    opt.addUsage("  -I  --in-file <filename>        The image to hide data in");
+    opt.addUsage("  -D  --data-file <filename>      Binary file that contains the data to be hidden");
+    opt.addUsage("  -O  --out-file <filename>       The resulting image");
+    opt.addUsage("");
+    opt.addUsage("ALLOWED VALUES:");
+    opt.addUsage("  Depth (8-bit images):           1, 2, 4, 8, (16 for 16 bit images)");
+    opt.addUsage("  Algorithm:                      AES128, AES192, AES256");
+
+    opt.printUsage();
+
+    opt.processCommandArgs(argc, argv);
 
 }
 
