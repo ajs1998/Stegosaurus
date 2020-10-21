@@ -6,8 +6,10 @@ class StegApp : public Steg::Application {
 
 public:
 
-    StegApp();
+    StegApp(int argc, char** argv);
 
     ~StegApp();
+
+    void MainLoop();
 
 };

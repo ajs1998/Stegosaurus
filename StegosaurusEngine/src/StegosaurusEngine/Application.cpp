@@ -3,10 +3,8 @@
 
 namespace Steg {
 
-    Application::Application() {}
+    Application::Application(int argc, char** argv) : argc(argc), argv(argv) {}
 
     Application::~Application() {}
-
-    void Application::Run() {}
 
 }

@@ -8,14 +8,18 @@ namespace Steg {
 
     public:
 
-        Application();
+        Application(int argc, char** argv);
 
         virtual ~Application();
 
-        void Run();
+    protected:
+        
+        int argc;
+
+        char** argv;
 
     };
 
-    Application* CreateApplication();
+    Application* CreateApplication(int argc, char** argv);
 
 }
