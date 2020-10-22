@@ -2,6 +2,8 @@
 
 #include "Stegosaurus.h"
 
+#include "anyoption.h"
+
 class StegApp : public Steg::Application {
 
 public:
@@ -10,6 +12,10 @@ public:
 
     ~StegApp();
 
-    void MainLoop();
+private:
+
+    AnyOption* GetOptions(int argc, char** argv);
+
+    std::string ValueToString(char* value);
 
 };

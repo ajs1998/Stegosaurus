@@ -8,15 +8,9 @@ namespace Steg {
 
     public:
 
-        Application(int argc, char** argv);
+        Application();
 
         virtual ~Application();
-
-    protected:
-        
-        int argc;
-
-        char** argv;
 
     };
 

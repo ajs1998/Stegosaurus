@@ -26,7 +26,7 @@ namespace Steg {
     struct EncoderSettings {
 
         // Split each data byte into DataDepth bits
-        // 1, 2, 4, 8 are valid values. 8 is valid for 16 bit images only
+        // 1, 2, 4, 8 are valid values. 16 is not valid yet
         // TODO Add support for all values on [1, BitDepth] (even though higher values are impractical)
         byte DataDepth = 2;
 

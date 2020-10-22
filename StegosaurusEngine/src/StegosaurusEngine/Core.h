@@ -3,11 +3,9 @@
 #include <memory>
 #include <string>
 
-#define BIT(x) (1 << x)
-
-typedef unsigned char byte;
-
 namespace Steg {
+
+    typedef unsigned char byte;
 
     template<typename T>
     using Scope = std::unique_ptr<T>;
