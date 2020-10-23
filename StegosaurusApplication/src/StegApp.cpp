@@ -11,19 +11,20 @@
 
 StegApp::StegApp(int argc, char** argv) {
 
-    // Get the command line arguments
+    // Get all command line arguments
     AnyOption* options = GetOptions(argc, argv);
 
+    // If user uses the "help" flag, print the help message then quit.
     if (options->getFlag('h')) {
         options->printUsage();
         exit(0);
     }
 
+    // Get the operation from the user
     std::string operation = ValueToString(options->getArgv(0));
-
-    std::string passOption = ValueToString(options->getValue('p'));
-    std::string inFileOption = ValueToString(options->getValue('I'));
-    std::string dataFileOption = ValueToString(options->getValue('D'));
+    std::string passOption = ValueToString(options->getValue(ShortPass));
+    std::string inFileOption = ValueToString(options->getValue(ShortIn));
+    std::string dataFileOption = ValueToString(options->getValue(ShortData));
 
     // Parse pass
     std::vector<Steg::byte> passBytes;
@@ -32,18 +33,18 @@ StegApp::StegApp(int argc, char** argv) {
     }
 
     // Encode using StegEngine
-    if (operation == "encode") {
+    if (operation == EncodeOp) {
 
-        bool useAlphaOption = options->getFlag('a');
-        bool encryptOption = options->getFlag('e');
-        std::string depthOption = ValueToString(options->getValue('b'));
-        std::string algoOption = ValueToString(options->getValue('g'));
-        std::string outFileOption = ValueToString(options->getValue('O'));
+        // Get encoder-specific options
+        bool useAlphaOption = options->getFlag(ShortAlpha);
+        bool encryptOption = options->getFlag(ShortEncrypt);
+        std::string depthOption = ValueToString(options->getValue(ShortDepth));
+        std::string algoOption = ValueToString(options->getValue(ShortAlgo));
+        std::string outFileOption = ValueToString(options->getValue(ShortOut));
 
+        // Create EncoderSettings and fill it with the proper options
         Steg::EncoderSettings encoderSettings;
-
         encoderSettings.EncodeInAlpha = useAlphaOption;
-
         encoderSettings.Encryption.EncryptPayload = encryptOption;
 
         // Parse depth
@@ -51,7 +52,6 @@ StegApp::StegApp(int argc, char** argv) {
         if (depthOption != "") {
             depth = std::stoi(depthOption);
         }
-
         if (depth != 1 && depth != 2 && depth != 4 && depth != 8 && depth != 16) {
             std::cerr << "Depth must be either 1, 2, 4, 8" << std::endl;
             exit(1);
@@ -97,12 +97,9 @@ StegApp::StegApp(int argc, char** argv) {
 
     }
     // Decode using StegEngine
-    else if (operation == "decode") {
+    else if (operation == DecodeOp) {
 
-        std::string passOption = ValueToString(options->getValue('p'));
-        std::string inFileOption = ValueToString(options->getValue('I'));
-        std::string dataFileOption = ValueToString(options->getValue('D'));
-        std::string outFileOption = ValueToString(options->getValue('O'));
+        std::string outFileOption = ValueToString(options->getValue(ShortOut));
 
         // Get the input image
         Steg::Image image(inFileOption);
@@ -139,7 +136,7 @@ AnyOption* StegApp::GetOptions(int argc, char** argv) {
     opt->addUsage("");
     opt->addUsage("Encoding Options:");
     opt->addUsage("  -a  --use-alpha                Encode data in alpha channel (Default: False)");
-    opt->addUsage("  -b  --depth <depth>            Bit depth of hidden data (Default: 2)");
+    opt->addUsage("  -d  --depth <depth>            Bit depth of hidden data (Default: 2)");
     opt->addUsage("Encryption Options:");
     opt->addUsage("  -p  --pass <password>          Encryption password");
     opt->addUsage("  -g  --algo <algorithm>         Encryption algorithm (AES128, AES192, AES256) (Default: AES128)");
@@ -154,7 +151,7 @@ AnyOption* StegApp::GetOptions(int argc, char** argv) {
     opt->addUsage("./steg encode -I \"in.png\" -D \"data.bin\" -O \"out.png\"");
     opt->addUsage("    Encodes the data in \"data.bin\" into \"in.png\" and stores the resulting image in \"out.png\"");
     opt->addUsage("");
-    opt->addUsage("./steg encode -a --depth 4 -p \"pass123\" -g AES192 -I \"in.png\" -D \"data.bin\" -O \"out.png\"");
+    opt->addUsage("./steg encode -a -d 4 -p \"pass123\" -g AES192 -I \"in.png\" -D \"data.bin\" -O \"out.png\"");
     opt->addUsage("    Same as above, but also encode in alpha, set depth to 4 bits, and encrypt payload with a password using AES192.");
     opt->addUsage("");
     opt->addUsage("./steg decode -I \"in.png\" -D \"data.bin\"");
@@ -163,15 +160,15 @@ AnyOption* StegApp::GetOptions(int argc, char** argv) {
     opt->addUsage("./steg decode -p \"pass123\" -I \"in.png\" -D \"data.bin\"");
     opt->addUsage("    Same as above, but decrypt using a password. The algorithm is automatically detected");
 
-    opt->setFlag("help", 'h');
-    opt->setFlag("use-alpha", 'a');
-    opt->setOption("depth", 'b');
-    opt->setFlag("encrypt", 'e');
-    opt->setOption("pass", 'p');
-    opt->setOption("algo", 'g');
-    opt->setFileOption("in-file", 'I');
-    opt->setFileOption("data-file", 'D');
-    opt->setFileOption("out-file", 'O');
+    opt->setFlag(LongHelp, ShortHelp);
+    opt->setFlag(LongAlpha, ShortAlpha);
+    opt->setOption(LongDepth, ShortDepth);
+    opt->setFlag(LongEncrypt, ShortEncrypt);
+    opt->setOption(LongPass, ShortPass);
+    opt->setOption(LongAlgo, ShortAlgo);
+    opt->setFileOption(LongIn, ShortIn);
+    opt->setFileOption(LongData, ShortData);
+    opt->setFileOption(LongOut, ShortOut);
 
     opt->processCommandArgs(argc, argv);
 
