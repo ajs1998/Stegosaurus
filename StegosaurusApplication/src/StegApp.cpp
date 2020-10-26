@@ -8,8 +8,12 @@
 #include "StegosaurusEngine/Image/RGBImage.h"
 #include "StegosaurusEngine/Image/GrayImage.h"
 #include "StegosaurusEngine/Crypt/StegCrypt.h"
+#include "StegosaurusEngine/StegTimer.h"
 
 StegApp::StegApp(int argc, char** argv) {
+
+    // Start the Total Timer
+    Steg::StegTimer::StartTimer(Steg::StegTimer::TimerLabel::TOTAL);
 
     // Get all command line arguments
     AnyOption* options = GetOptions(argc, argv);
@@ -88,7 +92,7 @@ StegApp::StegApp(int argc, char** argv) {
             exit(1);
         }
 
-        int fileLength = dataFile.tellg();
+        int fileLength = (int)dataFile.tellg();
         std::vector<char> dataChars(fileLength);
         dataFile.seekg(0, ios::beg);
         dataFile.read(&dataChars[0], fileLength);
@@ -141,9 +145,13 @@ StegApp::StegApp(int argc, char** argv) {
 
     delete options;
 
+    // End the Total Timer
+    Steg::StegTimer::EndTimer(Steg::StegTimer::TimerLabel::TOTAL);
+
 }
 
 StegApp::~StegApp() {
+    Steg::StegTimer::PrintTimers();
     // Application Destructor
 }
 
@@ -211,6 +219,7 @@ std::string StegApp::ValueToString(char* value) {
 
 // Implemented from StegosaurusEngine/EntryPoint.h
 Steg::Application* Steg::CreateApplication(int argc, char** argv) {
+    // FOR DEBUGGING:
     // encode -d 4 -p "passpasspasspass1" -I "C:/Dev/in.png" -D "C:/Dev/indata.bin" -O "C:/Dev/out.png"
     // decode -p "passpasspasspass1" -I "C:/Dev/out.png" -D "C:/Dev/outdata.bin"
     return new StegApp(argc, argv);

@@ -3,11 +3,15 @@
 #include "StegEngine.h"
 
 #include "Crypt/StegCrypt.h"
-#include <StegosaurusEngine/Image/RGBImage.h>
+#include "Image/RGBImage.h"
+#include "StegTimer.h"
 
 namespace Steg {
 
     bool StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
+
+        // Start the Encode Timer
+        StegTimer::StartTimer(StegTimer::TimerLabel::ENCODE);
 
         // Encrypt the payload if necessary
         std::vector<byte> payload;
@@ -134,11 +138,17 @@ namespace Steg {
             }
         }
 
+        // End the Encode Timer
+        StegTimer::EndTimer(StegTimer::TimerLabel::ENCODE);
+
         return true;
 
     }
 
-    std::vector<byte> StegEngine::Decode(const Image& image, const std::vector<byte> key) throw () {
+    std::vector<byte> StegEngine::Decode(const Image& image, const std::vector<byte> key) {
+
+        // Start the Decode Timer
+        StegTimer::StartTimer(StegTimer::TimerLabel::DECODE);
 
         // Width of the image
         uint32_t width = image.GetWidth();
@@ -268,6 +278,9 @@ namespace Steg {
             data = payload;
         }
 
+        // End the Decode Timer
+        StegTimer::EndTimer(StegTimer::TimerLabel::DECODE);
+
         return data;
 
     }
@@ -344,6 +357,11 @@ namespace Steg {
         // The payload can be encoded into the image with the specified settings
         return true;
 
+    }
+
+    int StegEngine::GetEncodedSize(uint32_t payloadSize, const EncoderSettings& settings) {
+        // TODO This is incomplete
+        return HEADER_SIZE + payloadSize;
     }
 
 }

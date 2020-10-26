@@ -3,11 +3,15 @@
 
 #include "aes.h"
 #include "include/argon2.h"
+#include "../StegTimer.h"
 
 namespace Steg {
 
     // These methods will handle the IV in the background
     std::vector<byte> StegCrypt::Encrypt(const std::vector<byte>& pass, const std::vector<byte> data, Algorithm algo) {
+
+        // Start the Encrypt Timer
+        StegTimer::StartTimer(StegTimer::TimerLabel::ENCRYPT);
 
         // Create a random number generator with seed 0 for the IV
         RNG rng(0);
@@ -49,11 +53,17 @@ namespace Steg {
         // Prepend IV to the data buffer
         dataBuffer.insert(dataBuffer.begin(), iv.begin(), iv.end());
 
+        // End the Encrypt Timer
+        StegTimer::EndTimer(StegTimer::TimerLabel::ENCRYPT);
+
         return dataBuffer;
 
     }
 
     std::vector<byte> StegCrypt::Decrypt(const std::vector<byte>& pass, const std::vector<byte> data, Algorithm algo) {
+
+        // Start the Decrypt Timer
+        StegTimer::StartTimer(StegTimer::TimerLabel::DECRYPT);
 
         // Create a random number generator with seed 0 for the IV
         RNG rng(0);
@@ -92,7 +102,12 @@ namespace Steg {
             // TODO Throw a fit
         }
 
-        return RemovePadding(dataBuffer);
+        std::vector<byte> decryptedBytes = RemovePadding(dataBuffer);
+
+        // End the Decrypt Timer
+        StegTimer::EndTimer(StegTimer::TimerLabel::DECRYPT);
+
+        return decryptedBytes;
 
     }
 

@@ -1,4 +1,5 @@
 #include <stegosaurus_pch.h>
+
 #include "RNG.h"
 
 namespace Steg {

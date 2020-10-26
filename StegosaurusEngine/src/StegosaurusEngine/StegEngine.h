@@ -27,7 +27,6 @@ namespace Steg {
 
         // Split each data byte into DataDepth bits
         // 1, 2, 4, 8 are valid values. 16 is not valid yet
-        // TODO Add support for all values on [1, BitDepth] (even though higher values are impractical)
         byte DataDepth = 2;
 
         // TRUE: Hide data in alpha channel if available
@@ -149,6 +148,8 @@ namespace Steg {
         static std::vector<uint32_t> GenerateIndices(uint32_t seed, RNG& rng);
 
         static bool CanEncode(const Image& image, uint32_t payloadSize, const EncoderSettings& settings);
+
+        static int GetEncodedSize(uint32_t payloadSize, const EncoderSettings& settings);
 
     };
 
