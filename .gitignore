@@ -3,8 +3,8 @@
 !/StegosaurusApplication
 !/StegosaurusEngine
 !premake5.lua
+!PremakeScript.bat
 !Proposal.txt
 *.vcxproj
 *.filters
 *.user
-!/scripts
