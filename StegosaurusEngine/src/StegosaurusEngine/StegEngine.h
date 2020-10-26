@@ -79,9 +79,6 @@ namespace Steg {
                     break;
                 }
             }
-            else {
-                result |= 0b000'0'0000;
-            }
 
             // TODO Add more bool flags here as needed (2 bits left)
 
@@ -93,17 +90,17 @@ namespace Steg {
 
             EncoderSettings settings;
 
-            byte depth = settingsByte & 0b11'000000;
-            if (depth == 0x00) {
+            byte depth = (settingsByte & 0b11'000000) >> 6;
+            if (depth == 0b00) {
                 settings.DataDepth = 1;
             }
-            else if (depth == 0x01) {
+            else if (depth == 0b01) {
                 settings.DataDepth = 2;
             }
-            else if (depth == 0x10) {
+            else if (depth == 0b10) {
                 settings.DataDepth = 4;
             }
-            else if (depth == 0x11) {
+            else if (depth == 0b11) {
                 settings.DataDepth = 8;
             }
 

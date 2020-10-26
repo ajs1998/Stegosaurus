@@ -138,7 +138,7 @@ namespace Steg {
 
     }
 
-    std::vector<byte> StegEngine::Decode(const Image& image, const std::vector<byte> key) {
+    std::vector<byte> StegEngine::Decode(const Image& image, const std::vector<byte> key) throw () {
 
         // Width of the image
         uint32_t width = image.GetWidth();
@@ -183,6 +183,10 @@ namespace Steg {
             // Extract the data from the image
             headerSize <<= 1;
             headerSize |= image.GetByte(byteIndex) & 0x1;
+        }
+
+        if (headerSize == 0) {
+            throw "Could not decode image!";
         }
 
         // Read the rest of the header information

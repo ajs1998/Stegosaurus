@@ -15,8 +15,9 @@ StegApp::StegApp(int argc, char** argv) {
     AnyOption* options = GetOptions(argc, argv);
 
     // If user uses the "help" flag, print the help message then quit.
-    if (options->getFlag('h')) {
+    if (options->getFlag('h') || !options->hasOptions()) {
         options->printUsage();
+        delete options;
         exit(0);
     }
 
@@ -37,7 +38,7 @@ StegApp::StegApp(int argc, char** argv) {
 
         // Get encoder-specific options
         bool useAlphaOption = options->getFlag(ShortAlpha);
-        bool encryptOption = options->getFlag(ShortEncrypt);
+        bool encryptOption = passOption != ""; // Encryption is enabled if a password is provided
         std::string depthOption = ValueToString(options->getValue(ShortDepth));
         std::string algoOption = ValueToString(options->getValue(ShortAlgo));
         std::string outFileOption = ValueToString(options->getValue(ShortOut));
@@ -46,6 +47,7 @@ StegApp::StegApp(int argc, char** argv) {
         Steg::EncoderSettings encoderSettings;
         encoderSettings.EncodeInAlpha = useAlphaOption;
         encoderSettings.Encryption.EncryptPayload = encryptOption;
+        encoderSettings.Encryption.EncryptionPassword = passBytes;
 
         // Parse depth
         uint32_t depth = 2;
@@ -54,12 +56,10 @@ StegApp::StegApp(int argc, char** argv) {
         }
         if (depth != 1 && depth != 2 && depth != 4 && depth != 8 && depth != 16) {
             std::cerr << "Depth must be either 1, 2, 4, 8" << std::endl;
+            delete options;
             exit(1);
         }
         encoderSettings.DataDepth = depth;
-
-        // Insert passBytes into encoderSettings
-        encoderSettings.Encryption.EncryptionPassword = passBytes;
 
         // Parse algo (Default: AES128)
         if (algoOption == "" || algoOption == "AES128") {
@@ -73,22 +73,31 @@ StegApp::StegApp(int argc, char** argv) {
         }
         else {
             std::cerr << "Invalid encryption algorithm: " << algoOption << std::endl;
+            delete options;
             exit(1);
         }
 
         // Get the input image
         Steg::Image image(inFileOption);
 
-        // Read the data input
-        std::ifstream dataFile(dataFileOption, ios::in | ios::binary);
-        std::vector<Steg::byte> dataBytes;
-        while (Steg::byte b = Steg::byte(dataFile.get())) {
-            dataBytes.push_back(b);
+        // Read the data file into dataBytes 
+        std::ifstream dataFile(dataFileOption, ios::binary | ios::ate);
+        if (!dataFile) {
+            cerr << "Cannot open file: " << dataFileOption << endl;
+            delete options;
+            exit(1);
         }
+
+        int fileLength = dataFile.tellg();
+        std::vector<char> dataChars(fileLength);
+        dataFile.seekg(0, ios::beg);
+        dataFile.read(&dataChars[0], fileLength);
+        std::vector<Steg::byte> dataBytes(dataChars.begin(), dataChars.end());
 
         // Encode the image
         if (!Steg::StegEngine::Encode(image, dataBytes, encoderSettings)) {
             std::cerr << "Could not encode image!" << std::endl;
+            delete options;
             exit(1);
         }
 
@@ -105,15 +114,28 @@ StegApp::StegApp(int argc, char** argv) {
         Steg::Image image(inFileOption);
 
         // Decode the image
-        std::vector<Steg::byte> data = Steg::StegEngine::Decode(image, passBytes);
+        try {
+            std::vector<Steg::byte> dataBytes = Steg::StegEngine::Decode(image, passBytes);
 
-        // Finally, save the data file
-        // TODO Write data to file
+            // Finally, save the data file
+            std::ofstream dataFile(dataFileOption, ios::binary);
+            if (!dataFile) {
+                cerr << "Cannot open file: " << dataFileOption << endl;
+                delete options;
+                exit(1);
+            }
+            dataFile.write(reinterpret_cast<char*>(&dataBytes[0]), dataBytes.size());
+        }
+        catch (std::exception& e) {
+            cerr << e.what() << std::endl;
+            exit(1);
+        }
 
     }
     // Invalid operation
     else {
         std::cerr << "Invalid operation: " << operation << std::endl;
+        delete options;
         exit(1);
     }
 
@@ -163,14 +185,15 @@ AnyOption* StegApp::GetOptions(int argc, char** argv) {
     opt->setFlag(LongHelp, ShortHelp);
     opt->setFlag(LongAlpha, ShortAlpha);
     opt->setOption(LongDepth, ShortDepth);
-    opt->setFlag(LongEncrypt, ShortEncrypt);
     opt->setOption(LongPass, ShortPass);
     opt->setOption(LongAlgo, ShortAlgo);
-    opt->setFileOption(LongIn, ShortIn);
-    opt->setFileOption(LongData, ShortData);
-    opt->setFileOption(LongOut, ShortOut);
+    opt->setOption(LongIn, ShortIn);
+    opt->setOption(LongData, ShortData);
+    opt->setOption(LongOut, ShortOut);
 
     opt->processCommandArgs(argc, argv);
+
+    // TODO exit(1) if any invalid flags or options are encountered
 
     return opt;
 
@@ -188,5 +211,7 @@ std::string StegApp::ValueToString(char* value) {
 
 // Implemented from StegosaurusEngine/EntryPoint.h
 Steg::Application* Steg::CreateApplication(int argc, char** argv) {
+    // encode -d 4 -p "passpasspasspass1" -I "C:/Dev/in.png" -D "C:/Dev/indata.bin" -O "C:/Dev/out.png"
+    // decode -p "passpasspasspass1" -I "C:/Dev/out.png" -D "C:/Dev/outdata.bin"
     return new StegApp(argc, argv);
 }
