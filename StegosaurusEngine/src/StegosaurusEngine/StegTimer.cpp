@@ -22,9 +22,9 @@ namespace Steg {
     void StegTimer::PrintTimers() {
         for (int i = 0; i <= TimerLabel::TOTAL; i++) {
             auto timer = static_cast<TimerLabel>(i);
-            auto durationMillis = elapsed.at(i).count();
-            if (durationMillis != 0) {
-                std::cout << GetTimerName(timer) << ": " << durationMillis << "ms" << std::endl;
+            auto duration = elapsed.at(i).count() / double(1000);
+            if (duration != 0) {
+                std::cout << GetTimerName(timer) << ": " << duration << "s" << std::endl;
             }
         }
     }

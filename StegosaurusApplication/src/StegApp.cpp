@@ -25,11 +25,75 @@ StegApp::StegApp(int argc, char** argv) {
         exit(0);
     }
 
-    // Get the operation from the user
+    // Get all options from the user
     std::string operation = ValueToString(options->getArgv(0));
     std::string passOption = ValueToString(options->getValue(ShortPass));
     std::string inFileOption = ValueToString(options->getValue(ShortIn));
     std::string dataFileOption = ValueToString(options->getValue(ShortData));
+    std::string outFileOption = ValueToString(options->getValue(ShortOut));
+    std::string depthOption = ValueToString(options->getValue(ShortDepth));
+    std::string algoOption = ValueToString(options->getValue(ShortAlgo));
+    bool useAlphaOption = options->getFlag(ShortAlpha);
+    bool encryptOption = passOption != ""; // Encryption is enabled if a password is provided
+
+    // Parse depth
+    uint32_t depth = 2;
+    if (depthOption != "") {
+        depth = std::stoi(depthOption);
+    }
+    if (depth != 1 && depth != 2 && depth != 4 && depth != 8 && depth != 16) {
+        std::cerr << "Depth must be either 1, 2, 4, 8" << std::endl;
+        delete options;
+        exit(1);
+    }
+
+    // Parse algo (Default: AES128)
+    Steg::StegCrypt::Algorithm algo;
+    if (algoOption == "" || algoOption == "AES128") {
+        algo = Steg::StegCrypt::Algorithm::ALGO_AES128;
+    }
+    else if (algoOption == "AES192") {
+        algo = Steg::StegCrypt::Algorithm::ALGO_AES192;
+    }
+    else if (algoOption == "AES256") {
+        algo = Steg::StegCrypt::Algorithm::ALGO_AES256;
+    }
+    else {
+        std::cerr << "Invalid encryption algorithm: " << algoOption << std::endl;
+        delete options;
+        exit(1);
+    }
+
+    // Print these options back for confirmation
+    if (operation == EncodeOp) {
+        std::cout << "Operation: Encode" << std::endl;
+        std::cout << "  Data Depth: " << depth << std::endl;
+        std::cout << "  Use Alpha: " << (useAlphaOption ? "True" : "False") << std::endl;
+        if (encryptOption) {
+            std::cout << "  Encryption: Enabled" << std::endl;
+            std::cout << "    Algorithm: " << algoOption << std::endl;
+            std::cout << "    Password: " << passOption << std::endl;
+        }
+        else {
+            std::cout << "  Encryption: Disabled" << std::endl;
+        }
+        std::cout << "  Input Image: " << inFileOption << std::endl;
+        std::cout << "  Input Data File: " << dataFileOption << std::endl;
+        std::cout << "  Output Image: " << outFileOption << std::endl;
+    }
+    else if (operation == DecodeOp) {
+        std::cout << "Operation: Decode" << std::endl;
+        if (encryptOption) {
+            std::cout << "  Password: " << passOption << std::endl;
+        }
+        std::cout << "  Input Image: " << inFileOption << std::endl;
+        std::cout << "  Output Data File: " << dataFileOption << std::endl;
+    }
+    else {
+        std::cerr << "Invalid operation: " << operation << std::endl;
+        delete options;
+        exit(1);
+    }
 
     // Parse pass
     std::vector<Steg::byte> passBytes;
@@ -40,46 +104,13 @@ StegApp::StegApp(int argc, char** argv) {
     // Encode using StegEngine
     if (operation == EncodeOp) {
 
-        // Get encoder-specific options
-        bool useAlphaOption = options->getFlag(ShortAlpha);
-        bool encryptOption = passOption != ""; // Encryption is enabled if a password is provided
-        std::string depthOption = ValueToString(options->getValue(ShortDepth));
-        std::string algoOption = ValueToString(options->getValue(ShortAlgo));
-        std::string outFileOption = ValueToString(options->getValue(ShortOut));
-
         // Create EncoderSettings and fill it with the proper options
         Steg::EncoderSettings encoderSettings;
         encoderSettings.EncodeInAlpha = useAlphaOption;
         encoderSettings.Encryption.EncryptPayload = encryptOption;
         encoderSettings.Encryption.EncryptionPassword = passBytes;
 
-        // Parse depth
-        uint32_t depth = 2;
-        if (depthOption != "") {
-            depth = std::stoi(depthOption);
-        }
-        if (depth != 1 && depth != 2 && depth != 4 && depth != 8 && depth != 16) {
-            std::cerr << "Depth must be either 1, 2, 4, 8" << std::endl;
-            delete options;
-            exit(1);
-        }
         encoderSettings.DataDepth = depth;
-
-        // Parse algo (Default: AES128)
-        if (algoOption == "" || algoOption == "AES128") {
-            encoderSettings.Encryption.Algo = Steg::StegCrypt::Algorithm::ALGO_AES128;
-        }
-        else if (algoOption == "AES192") {
-            encoderSettings.Encryption.Algo = Steg::StegCrypt::Algorithm::ALGO_AES192;
-        }
-        else if (algoOption == "AES256") {
-            encoderSettings.Encryption.Algo = Steg::StegCrypt::Algorithm::ALGO_AES256;
-        }
-        else {
-            std::cerr << "Invalid encryption algorithm: " << algoOption << std::endl;
-            delete options;
-            exit(1);
-        }
 
         // Get the input image
         Steg::Image image(inFileOption);
@@ -112,8 +143,6 @@ StegApp::StegApp(int argc, char** argv) {
     // Decode using StegEngine
     else if (operation == DecodeOp) {
 
-        std::string outFileOption = ValueToString(options->getValue(ShortOut));
-
         // Get the input image
         Steg::Image image(inFileOption);
 
@@ -135,12 +164,6 @@ StegApp::StegApp(int argc, char** argv) {
             exit(1);
         }
 
-    }
-    // Invalid operation
-    else {
-        std::cerr << "Invalid operation: " << operation << std::endl;
-        delete options;
-        exit(1);
     }
 
     delete options;
