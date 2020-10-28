@@ -3,6 +3,7 @@
 #include <StegosaurusEngine/StegEngine.h>
 
 #include <iostream>
+#include <iosfwd>
 
 #include "StegosaurusEngine/Image/Image.h"
 #include "StegosaurusEngine/Image/RGBImage.h"
@@ -93,6 +94,25 @@ StegApp::StegApp(int argc, char** argv) {
         std::cerr << "Invalid operation: " << operation << std::endl;
         delete options;
         exit(1);
+    }
+
+    // Ask user if we should proceed
+    std::cout << "Proceed with these options? (y/n): ";
+
+    string proceedStr;
+    std::cin >> proceedStr;
+    if (proceedStr != "Y" && proceedStr != "y") {
+        // Operation is cancelled if the user enters anything other than 'Y' or 'y'
+        std::cout << "Cancelled Operation" << std::endl;
+        exit(0);
+    }
+    else {
+        if (operation == EncodeOp) {
+            std::cout << "Encoding and saving to " << outFileOption << ":" << std::endl;
+        }
+        else if (operation == DecodeOp) {
+            std::cout << "Decoding and saving to " << dataFileOption << ":" << std::endl;
+        }
     }
 
     // Parse pass
