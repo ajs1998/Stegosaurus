@@ -2,8 +2,6 @@
 
 #include <StegosaurusEngine/Core.h>
 
-#include <random>
-
 namespace Steg {
 
     struct RNG {

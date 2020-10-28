@@ -4,9 +4,6 @@
 
 #include "Image.h"
 
-#include <string>
-#include <vector>
-
 namespace Steg {
 
     struct RGBColor {

@@ -4,7 +4,6 @@
 #include "RGBImage.h"
 
 #include "lodepng.h"
-#include <iostream>
 
 namespace Steg {
 

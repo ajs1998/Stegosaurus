@@ -126,7 +126,7 @@ namespace Steg {
 
         unsigned error = lodepng::encode(imagePath, Data, Width, Height, type, depth);
         if (error) {
-            std::cerr << "Could not encode and save file to " << imagePath << std::endl;
+            throw std::runtime_error("Could not encode and save file to " + imagePath);
         }
     }
 

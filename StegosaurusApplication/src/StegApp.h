@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Stegosaurus.h"
-
 #include "anyoption.h"
 
 constexpr auto EncodeOp = "encode";
@@ -24,7 +22,7 @@ constexpr auto ShortData = 'D';
 constexpr auto LongOut = "out-file";
 constexpr auto ShortOut = 'O';
 
-class StegApp : public Steg::Application {
+class StegApp {
 
 public:
 

@@ -4,9 +4,6 @@
 
 #include "../RNG.h"
 
-#include <string>
-#include <vector>
-
 namespace Steg {
 
     class StegCrypt {

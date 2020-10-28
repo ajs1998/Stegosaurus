@@ -2,9 +2,6 @@
 
 #include <StegosaurusEngine/Core.h>
 
-#include <array>
-#include <chrono>
-
 namespace Steg {
 
     class StegTimer {

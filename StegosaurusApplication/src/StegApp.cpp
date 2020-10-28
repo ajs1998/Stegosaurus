@@ -262,10 +262,6 @@ std::string StegApp::ValueToString(char* value) {
     }
 }
 
-// Implemented from StegosaurusEngine/EntryPoint.h
-Steg::Application* Steg::CreateApplication(int argc, char** argv) {
-    // FOR DEBUGGING:
-    // encode -d 4 -p "passpasspasspass1" -I "C:/Dev/in.png" -D "C:/Dev/indata.bin" -O "C:/Dev/out.png"
-    // decode -p "passpasspasspass1" -I "C:/Dev/out.png" -D "C:/Dev/outdata.bin"
-    return new StegApp(argc, argv);
+int main(int argc, char** argv) {
+    StegApp app = StegApp(argc, argv);
 }

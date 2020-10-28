@@ -2,9 +2,6 @@
 
 #include <StegosaurusEngine/Core.h>
 
-#include <string>
-#include <vector>
-
 namespace Steg {
 
     enum class PixelMode {

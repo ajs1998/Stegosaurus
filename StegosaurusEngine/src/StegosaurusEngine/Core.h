@@ -1,7 +1,11 @@
 #pragma once
 
+#include <array>
+#include <chrono>
 #include <memory>
+#include <random>
 #include <string>
+#include <vector>
 
 namespace Steg {
 
