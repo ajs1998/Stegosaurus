@@ -32,7 +32,7 @@ namespace Steg {
             result.Value = color & 0xFFFF;
         }
         else {
-            // TODO Throw a fit
+            throw std::invalid_argument("Invalid Image bit depth: " + BitDepth);
         }
         return result;
     }
@@ -51,7 +51,7 @@ namespace Steg {
             color <<= 16;
         }
         else {
-            // TODO Throw a fit
+            throw std::invalid_argument("Invalid Image bit depth: " + BitDepth);
         }
         color |= alpha;
         Image::SetColor(x, y, color);

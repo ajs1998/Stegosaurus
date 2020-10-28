@@ -3,7 +3,6 @@
 #include <StegosaurusEngine/StegEngine.h>
 
 #include <iostream>
-#include <iosfwd>
 
 #include "StegosaurusEngine/Image/Image.h"
 #include "StegosaurusEngine/Image/RGBImage.h"
@@ -150,8 +149,11 @@ StegApp::StegApp(int argc, char** argv) {
         std::vector<Steg::byte> dataBytes(dataChars.begin(), dataChars.end());
 
         // Encode the image
-        if (!Steg::StegEngine::Encode(image, dataBytes, encoderSettings)) {
-            std::cerr << "Could not encode image!" << std::endl;
+        try {
+            Steg::StegEngine::Encode(image, dataBytes, encoderSettings);
+        }
+        catch (const std::runtime_error& e) {
+            std::cerr << e.what() << std::endl;
             delete options;
             exit(1);
         }

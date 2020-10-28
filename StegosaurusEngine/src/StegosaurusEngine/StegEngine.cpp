@@ -8,7 +8,7 @@
 
 namespace Steg {
 
-    bool StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
+    void StegEngine::Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings) {
 
         // Start the Encode Timer
         StegTimer::StartTimer(StegTimer::TimerLabel::ENCODE);
@@ -27,8 +27,7 @@ namespace Steg {
 
         // Check size constraints in a separate method
         if (!CanEncode(image, payloadByteCount, settings)) {
-            // TODO Throw a fit
-            return false;
+            throw std::runtime_error("Not enough space in image to encode data");
         }
 
         // Width of the image
@@ -140,8 +139,6 @@ namespace Steg {
 
         // End the Encode Timer
         StegTimer::EndTimer(StegTimer::TimerLabel::ENCODE);
-
-        return true;
 
     }
 
@@ -297,8 +294,7 @@ namespace Steg {
             return mask & 0xFF;
         }
         else {
-            // TODO Throw a fit maybe?
-            return 0;
+            throw std::invalid_argument("Invalid Image bit depth: " + imageBitDepth);
         }
     }
 
@@ -308,11 +304,10 @@ namespace Steg {
             return mask >> (8 - dataBitDepth);
         }
         else if (imageBitDepth == 8) {
-            // TODO Maybe refuse if dataBitDepth == 8 because the entire pixel will be overwritten
             return mask >> (8 - dataBitDepth);
         }
         else {
-            // TODO Throw a fit maybe?
+            throw std::invalid_argument("Invalid Image bit depth: " + imageBitDepth);
             return 0;
         }
     }

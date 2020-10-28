@@ -1,8 +1,8 @@
 #include <stegosaurus_pch.h>
 
 #include "Image.h"
+
 #include "lodepng.h"
-#include <iostream>
 
 namespace Steg {
 
@@ -17,12 +17,12 @@ namespace Steg {
 
         uint32_t error = lodepng::load_file(file, imagePath);
         if (error) {
-            // TODO Make a fuss
+            throw std::runtime_error("Could not load image file: " + imagePath);
         }
 
         error = lodepng::decode(Data, Width, Height, state, file);
         if (error) {
-            // TODO Make a fuss
+            throw std::runtime_error("Could not load image file: " + imagePath);
         }
 
         PixelCount = Width * Height;
@@ -76,7 +76,7 @@ namespace Steg {
             break;
         default:
             Mode = PixelMode::INVALID;
-            // TODO Throw a fit
+            throw std::invalid_argument("Invalid LodePNG Color Type: " + colorType);
         }
 
     }
@@ -121,9 +121,7 @@ namespace Steg {
         }
 
         if (depth == 16) {
-            // TODO Throw a fit
-            std::cerr << "16-bit image encoding is not available yet" << std::endl;
-            return;
+            throw std::invalid_argument("16-bit image saving is not available yet");
         }
 
         unsigned error = lodepng::encode(imagePath, Data, Width, Height, type, depth);
@@ -268,7 +266,7 @@ namespace Steg {
             }
         }
         else {
-            // TODO Throw a fit
+            throw std::invalid_argument("Invalid Image bit depth: " + bitDepth);
             return PixelMode::INVALID;
         }
     }
@@ -291,7 +289,7 @@ namespace Steg {
             }
         }
         else {
-            // TODO Throw a fit
+            throw std::invalid_argument("Invalid Image bit depth: " + bitDepth);
             return PixelMode::INVALID;
         }
     }
@@ -309,7 +307,7 @@ namespace Steg {
         case PixelMode::RGBA_16:
             return 16;
         default:
-            return 0; // TODO Throw a fit
+            throw std::invalid_argument("Unsupported Pixel Mode");
         }
     }
 
@@ -328,7 +326,7 @@ namespace Steg {
         case PixelMode::RGBA_16:
             return 4;
         default:
-            return 0; // TODO Throw a fit
+            throw std::invalid_argument("Unsupported Pixel Mode");
         }
     }
 
@@ -349,8 +347,7 @@ namespace Steg {
         case PixelMode::RGBA_16:
             return true;
         default:
-            return false;
-            // TODO Throw a fit
+            throw std::invalid_argument("Unsupported Pixel Mode");
         }
     }
 

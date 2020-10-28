@@ -19,7 +19,7 @@ namespace Steg {
         // Get the block length of this algorithm
         uint32_t blockLength = GetBlockLength(algo);
 
-        // TODO Use a KDF instead (PBKDF2)
+        // Derive key from the password
         std::vector<byte> key = DeriveKey(pass, blockLength, rng);
 
         // IV is BLOCK_SIZE bytes long
@@ -47,7 +47,7 @@ namespace Steg {
             AES256_CBC_encrypt_buffer(&context, dataBytes, dataBuffer.size());
         }
         else {
-            // TODO Throw a fit
+            throw std::invalid_argument("Unsupported Algorithm");
         }
 
         // Prepend IV to the data buffer
@@ -71,7 +71,7 @@ namespace Steg {
         // Get the block length of this algorithm
         uint32_t blockLength = GetBlockLength(algo);
 
-        // TODO Use a KDF instead (PBKDF2)
+        // Derive key from the password
         std::vector<byte> key = DeriveKey(pass, blockLength, rng);
 
         // IV is BLOCK_SIZE bytes long
@@ -99,7 +99,7 @@ namespace Steg {
             AES256_CBC_decrypt_buffer(&context, dataBytes, dataBuffer.size());
         }
         else {
-            // TODO Throw a fit
+            throw std::invalid_argument("Unsupported Algorithm");
         }
 
         std::vector<byte> decryptedBytes = RemovePadding(dataBuffer);
@@ -177,7 +177,7 @@ namespace Steg {
         case Algorithm::ALGO_AES256:
             return 32;
         default:
-            // TODO Throw a fit
+            throw std::invalid_argument("Unsupported Algorithm");
             return 0;
         }
     }

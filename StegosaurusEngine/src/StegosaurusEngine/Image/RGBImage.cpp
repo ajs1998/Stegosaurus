@@ -40,14 +40,14 @@ namespace Steg {
             result.Red = color & 0xFFFF;
         }
         else {
-            // TODO Throw a fit
+            throw std::invalid_argument("Invalid Image bit depth: " + BitDepth);
         }
         return result;
     }
 
     void RGBImage::SetColor(uint32_t x, uint32_t y, uint16_t red, uint16_t green, uint16_t blue) {
         if (HasAlpha) {
-            // TODO Throw a fit
+            throw std::invalid_argument("Must provide an alpha value for RGBA images");
         }
         uint64_t color = red;
         color <<= BitDepth;
@@ -59,7 +59,7 @@ namespace Steg {
 
     void RGBImage::SetColor(uint32_t x, uint32_t y, uint16_t red, uint16_t green, uint16_t blue, uint16_t alpha) {
         if (!HasAlpha) {
-            // TODO Throw a fit
+            throw std::invalid_argument("Must not provide an alpha value for RGB images");
         }
         uint64_t color = red;
         color <<= BitDepth;

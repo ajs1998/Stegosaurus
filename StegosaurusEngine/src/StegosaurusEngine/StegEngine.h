@@ -55,7 +55,7 @@ namespace Steg {
                 result |= 0b11'000000;
             }
             else {
-                // TODO Throw a fit probably
+                throw std::invalid_argument("Invalid data depth: " + DataDepth);
                 return 0;
             }
 
@@ -133,7 +133,7 @@ namespace Steg {
 
     public:
 
-        static bool Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings);
+        static void Encode(Image& image, const std::vector<byte>& data, const EncoderSettings& settings);
 
         static std::vector<byte> Decode(const Image& image, const std::vector<byte> key);
 
