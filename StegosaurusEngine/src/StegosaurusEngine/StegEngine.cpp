@@ -52,7 +52,7 @@ namespace Steg {
         // Add headerByteCount to header
         // This value is 6 right now, but this will be different for variable header sizes
         // Note: This number includes this byte
-        header.push_back(byte(HEADER_SIZE));
+        header.push_back(byte(HeaderSize));
 
         // Add dataByteCount to header
         header.push_back((byte)(payloadByteCount >> 24 & 0xFF));
@@ -282,6 +282,54 @@ namespace Steg {
 
     }
 
+    uint32_t StegEngine::CalculateAvailableBytes(const Image& image, const EncoderSettings& settings) {
+
+        // Calculate the total available parts
+        uint32_t availableParts;
+        if (settings.EncodeInAlpha || !image.HasAlpha()) {
+            availableParts = image.GetPixelWidth() * image.GetWidth() * image.GetHeight();
+        }
+        else {
+            uint32_t bytesPerChannel = image.GetBitDepth() / 8;
+            availableParts = (image.GetPixelWidth() - bytesPerChannel) * image.GetWidth() * image.GetHeight();
+        }
+
+        // Subtract one byte from the available size for the seed (first byte of the image is unavailable)
+        availableParts--;
+
+        byte dataDepth = settings.DataDepth;
+        uint32_t partsPerByte = 8 / dataDepth;
+
+        if (settings.Encryption.EncryptPayload) {
+
+            uint32_t blockSize = StegCrypt::GetBlockLength(settings.Encryption.Algo);
+
+            // Integer division floors the result (this is good)
+            uint32_t maxBytes = availableParts / partsPerByte;
+
+            // Integer division floors the result (this is good)
+            uint32_t maxBlocks = maxBytes / blockSize;
+
+            // Subtract 1 for the IV
+            uint32_t availableBlocks = maxBlocks - 1;
+
+            // Subtract 1 byte to account for padding
+            // 15n bytes of data will get 1 byte of padding
+            // 16n bytes of data will get 16 bytes of padding even though size % 16 == 0
+            uint32_t availableBytes = availableBlocks * blockSize - 1;
+
+            return availableBytes - HeaderSize;
+            
+        }
+        else {
+
+            // Integer division floors the result (this is good)
+            return (availableParts / partsPerByte) - HeaderSize;
+
+        }
+
+    }
+
     // Ex: bitDepth = 8, dataDepth = 2 => 1111'1111'1111'1100
     // Ex: bitDepth = 8, dataDepth = 4 => 1111'1111'1111'0000
     uint16_t StegEngine::GetPixelMask(uint32_t imageBitDepth, uint32_t dataBitDepth) {
@@ -328,9 +376,9 @@ namespace Steg {
     }
 
     bool StegEngine::CanEncode(const Image& image, uint32_t payloadSize, const EncoderSettings& settings) {
-        uint32_t totalSize = HEADER_SIZE + payloadSize;
+        uint32_t totalSize = HeaderSize + payloadSize;
 
-        // Calculate the total available bytes
+        // Calculate the total available parts
         uint32_t availableParts;
         if (settings.EncodeInAlpha || !image.HasAlpha()) {
             availableParts = image.GetPixelWidth() * image.GetWidth() * image.GetHeight();
@@ -352,11 +400,6 @@ namespace Steg {
         // The payload can be encoded into the image with the specified settings
         return true;
 
-    }
-
-    int StegEngine::GetEncodedSize(uint32_t payloadSize, const EncoderSettings& settings) {
-        // TODO This is incomplete
-        return HEADER_SIZE + payloadSize;
     }
 
 }

@@ -30,6 +30,8 @@ namespace Steg {
 
         static std::vector<byte> RemovePadding(const std::vector<byte> data);
 
+    public:
+
         static uint32_t GetBlockLength(Algorithm algo);
 
     };

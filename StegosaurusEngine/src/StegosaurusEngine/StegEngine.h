@@ -137,9 +137,11 @@ namespace Steg {
 
         static std::vector<byte> Decode(const Image& image, const std::vector<byte> key);
 
+        static uint32_t CalculateAvailableBytes(const Image& image, const EncoderSettings& settings);
+
     private:
 
-        static constexpr uint32_t HEADER_SIZE = 6;
+        static constexpr uint32_t HeaderSize = 6;
 
         static uint16_t GetPixelMask(uint32_t imageBitDepth, uint32_t dataBitDepth);
 
@@ -148,8 +150,6 @@ namespace Steg {
         static std::vector<uint32_t> GenerateIndices(uint32_t seed, RNG& rng);
 
         static bool CanEncode(const Image& image, uint32_t payloadSize, const EncoderSettings& settings);
-
-        static int GetEncodedSize(uint32_t payloadSize, const EncoderSettings& settings);
 
     };
 
