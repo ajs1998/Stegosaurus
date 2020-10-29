@@ -16,12 +16,11 @@ StegApp::StegApp(int argc, char** argv) {
     Steg::StegTimer::StartTimer(Steg::StegTimer::TimerLabel::TOTAL);
 
     // Get all command line arguments
-    AnyOption* options = GetOptions(argc, argv);
+    std::unique_ptr<AnyOption> options = GetOptions(argc, argv);
 
     // If user uses the "help" flag, print the help message then quit.
     if (options->getFlag('h') || !options->hasOptions()) {
         options->printUsage();
-        delete options;
         exit(0);
     }
 
@@ -43,7 +42,6 @@ StegApp::StegApp(int argc, char** argv) {
     }
     if (depth != 1 && depth != 2 && depth != 4 && depth != 8 && depth != 16) {
         std::cerr << "Depth must be either 1, 2, 4, 8" << std::endl;
-        delete options;
         exit(1);
     }
 
@@ -60,7 +58,6 @@ StegApp::StegApp(int argc, char** argv) {
     }
     else {
         std::cerr << "Invalid encryption algorithm: " << algoOption << std::endl;
-        delete options;
         exit(1);
     }
 
@@ -91,7 +88,6 @@ StegApp::StegApp(int argc, char** argv) {
     }
     else {
         std::cerr << "Invalid operation: " << operation << std::endl;
-        delete options;
         exit(1);
     }
 
@@ -137,16 +133,20 @@ StegApp::StegApp(int argc, char** argv) {
         // Read the data file into dataBytes 
         std::ifstream dataFile(dataFileOption, ios::binary | ios::ate);
         if (!dataFile) {
-            cerr << "Cannot open file: " << dataFileOption << endl;
-            delete options;
+            std::cerr << "Cannot open file: " << dataFileOption << std::endl;
             exit(1);
         }
-
         int fileLength = (int)dataFile.tellg();
         std::vector<char> dataChars(fileLength);
         dataFile.seekg(0, ios::beg);
         dataFile.read(&dataChars[0], fileLength);
         std::vector<Steg::byte> dataBytes(dataChars.begin(), dataChars.end());
+
+        // Check that dataFile will fit in image with the specified encoderSettings
+        if (dataBytes.size() > Steg::StegEngine::CalculateAvailableBytes(image, encoderSettings)) {
+            std::cerr << "The data in " << dataFileOption << " cannot be encoded in " << inFileOption << " with the specified settings" << std::endl;
+            exit(1);
+        }
 
         // Encode the image
         try {
@@ -154,7 +154,6 @@ StegApp::StegApp(int argc, char** argv) {
         }
         catch (const std::runtime_error& e) {
             std::cerr << e.what() << std::endl;
-            delete options;
             exit(1);
         }
 
@@ -176,7 +175,6 @@ StegApp::StegApp(int argc, char** argv) {
             std::ofstream dataFile(dataFileOption, ios::binary);
             if (!dataFile) {
                 cerr << "Cannot open file: " << dataFileOption << endl;
-                delete options;
                 exit(1);
             }
             dataFile.write(reinterpret_cast<char*>(&dataBytes[0]), dataBytes.size());
@@ -188,8 +186,6 @@ StegApp::StegApp(int argc, char** argv) {
 
     }
 
-    delete options;
-
     // End the Total Timer
     Steg::StegTimer::EndTimer(Steg::StegTimer::TimerLabel::TOTAL);
 
@@ -200,9 +196,9 @@ StegApp::~StegApp() {
     // Application Destructor
 }
 
-AnyOption* StegApp::GetOptions(int argc, char** argv) {
+std::unique_ptr<AnyOption> StegApp::GetOptions(int argc, char** argv) {
 
-    AnyOption* opt = new AnyOption();
+    std::unique_ptr<AnyOption> opt = std::make_unique<AnyOption>();
 
     // Help message
     opt->addUsage("Usage: -> ./steg encode [Encoding Options] [Encryption Options] -I <input image> -D <data file> -O <output image>");

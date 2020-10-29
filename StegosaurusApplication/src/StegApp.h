@@ -32,7 +32,7 @@ public:
 
 private:
 
-    AnyOption* GetOptions(int argc, char** argv);
+    std::unique_ptr<AnyOption> GetOptions(int argc, char** argv);
 
     std::string ValueToString(char* value);
 
