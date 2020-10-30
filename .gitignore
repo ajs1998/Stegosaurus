@@ -5,6 +5,7 @@
 !premake5.lua
 !PremakeScript.bat
 !Proposal.txt
+!README.md
 *.vcxproj
 *.filters
 *.user
