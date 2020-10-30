@@ -6,6 +6,7 @@
 !PremakeScript.bat
 !Proposal.txt
 !README.md
+!LICENSE.txt
 *.vcxproj
 *.filters
 *.user
