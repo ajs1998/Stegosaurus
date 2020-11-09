@@ -2,15 +2,15 @@
 
 This is a steganography engine that encodes binary data into an image file (specifically in PNG format).
 
-## Installation
+## Building
 
 Run PremakeScript.bat and build StegosaurusApplication with Visual Studio 2019.
 
-There are two main projects: StegosaurusEngine and StegosaurusApplication. The engine is compiled into a .lib file that you could use in your own program. The Application project is a command line tool that takes user input and uses the engine library to encode and decode information to and from images.
+There are two main projects: `StegosaurusEngine` and `StegosaurusApplication`. The engine is compiled into a `.lib` file that you could use in your own program. The Application project is a command line tool that takes user input and uses the engine library to encode and decode information to and from images.
 
-The Engine .lib file will be in bin/[Debug | Release]/windows-x86/StegosaurusEngine/
+The Engine `.lib` file will be in `bin/[Debug | Release]/windows-x86/StegosaurusEngine/`
 
-The Application .exe file will be in bin/[Debug | Release]/windows-x86/StegosaurusApplication/
+The Application .exe file will be in `bin/[Debug | Release]/windows-x86/StegosaurusApplication/`
 
 ## StegApp Usage
 
@@ -35,7 +35,7 @@ Other:
 
 ### Examples:
 
-Encode the data in "data.bin" into "in.png" and stores the resulting image in "out.png":
+Encode the data in `data.bin` into `in.png` and stores the resulting image in `out.png`:
 
     ./steg encode -I "in.png" -D "data.bin" -O "out.png"
 
@@ -45,7 +45,7 @@ Same as above, but also encode in alpha, set depth to 4 bits, and encrypt payloa
     ./steg encode -a -d 4 -p "pass123" -g AES192 -I "in.png" -D "data.bin" -O "out.png"
 
 
-Decode "in.png" and stores the resulting data in "data.bin":
+Decode `in.png` and stores the resulting data in `data.bin`:
 
     ./steg decode -I "in.png" -D "data.bin"
 
