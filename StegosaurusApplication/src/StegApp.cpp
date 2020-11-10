@@ -49,6 +49,7 @@ StegApp::StegApp(int argc, char** argv) {
     Steg::StegCrypt::Algorithm algo;
     if (algoOption == "" || algoOption == "AES128") {
         algo = Steg::StegCrypt::Algorithm::ALGO_AES128;
+        algoOption = "AES128"; // TODO this is bad but I don't want to algo.ToString() later.
     }
     else if (algoOption == "AES192") {
         algo = Steg::StegCrypt::Algorithm::ALGO_AES192;
@@ -143,10 +144,13 @@ StegApp::StegApp(int argc, char** argv) {
         std::vector<Steg::byte> dataBytes(dataChars.begin(), dataChars.end());
 
         // Check that dataFile will fit in image with the specified encoderSettings
-        if (dataBytes.size() > Steg::StegEngine::CalculateAvailableBytes(image, encoderSettings)) {
+        uint32_t availableBytes = Steg::StegEngine::CalculateAvailableBytes(image, encoderSettings);
+        if (dataBytes.size() > availableBytes) {
             std::cerr << "The data in " << dataFileOption << " cannot be encoded in " << inFileOption << " with the specified settings" << std::endl;
             exit(1);
         }
+        std::cout << "  Maximum input data file size for this image and these settings: " << (availableBytes / double(1000)) << "KB" << std::endl;
+        std::cout << "  Ratio of overwritten available bytes: " << (fileLength / double(availableBytes) * 100) << "%" << std::endl;
 
         // Encode the image
         try {
