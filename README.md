@@ -4,7 +4,7 @@ This is a steganography engine that encodes binary data into an image file (spec
 
 ## Building
 
-Run PremakeScript.bat and build StegosaurusApplication with Visual Studio 2019.
+Download [Premake5](https://premake.github.io/download.html) for your system and move the binary to vendor/premake/, then run PremakeScript.bat. You can also use Premake to generate solution files for vs2005 and up, or generate gmake, gmake2, or codelite project files. Build StegosaurusApplication with Visual Studio 2019. Visual Studio is for Windows only, 
 
 There are two main projects: `StegosaurusEngine` and `StegosaurusApplication`. The engine is compiled into a `.lib` file that you could use in your own program. The Application project is a command line tool that takes user input and uses the engine library to encode and decode information to and from images.
 
