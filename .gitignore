@@ -1,12 +1,14 @@
+# Ignore everyting
 /*
+
+# Plus some extra stuff
+**/.idea/
+**/.DS_Store
+
+# Unignore useful things
+!src/
+!lib/
 !.gitignore
-!/StegosaurusApplication
-!/StegosaurusEngine
-!premake5.lua
-!PremakeScript.bat
-!Proposal.txt
+!.gitmodules
 !README.md
-!LICENSE.txt
-*.vcxproj
-*.filters
-*.user
+!CMakeLists.txt
