@@ -1,6 +1,6 @@
 #include "StegApp.h"
 
-#include <StegosaurusEngine/StegEngine.h>
+#include <StegEngine.h>
 
 #include <iostream>
 

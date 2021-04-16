@@ -1,3 +1,6 @@
 [submodule "lib/AnyOption"]
 	path = lib/AnyOption
 	url = https://github.com/hackorama/AnyOption
+[submodule "lib/StegosaurusEngine"]
+	path = lib/StegosaurusEngine
+	url = git@github.com:ajs1998/StegosaurusEngine.git
