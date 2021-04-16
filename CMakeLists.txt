@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.19)
 
 # Project Name
-project("StegosaurusEngine")
+project("StegosaurusApplication")
 set(CMAKE_CXX_STANDARD 20)
 
 # Create a list of source files
